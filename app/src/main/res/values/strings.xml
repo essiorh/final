@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">Exercise_four</string>
+
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
+    <string name="favorite">Favorite</string>
+
+
+    <string-array name="spinner_values">
+        <item>Expandable</item>
+        <item>Default</item>
+    </string-array>
+</resources>
