@@ -11,6 +11,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.CheckBox;
 import android.widget.ExpandableListView;
+import android.widget.LinearLayout;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
@@ -20,6 +21,7 @@ import android.widget.TextView;
 import com.example.ilia.final_exercise.R;
 import com.example.ilia.final_exercise.adapters.ListCustomAdapter;
 import com.example.ilia.final_exercise.adapters.ListExpandableAdapter;
+import com.example.ilia.final_exercise.interfaces.IClickListener;
 import com.example.ilia.final_exercise.models.ArticleItem;
 import com.example.ilia.final_exercise.models.GroupItem;
 
@@ -31,7 +33,8 @@ import java.util.List;
 /**
  * Created by ilia on 08.06.15.
  */
-public class ListFragment extends Fragment implements Spinner.OnItemSelectedListener{
+public class ListFragment extends Fragment implements Spinner.OnItemSelectedListener
+        , ExpandableListView.OnChildClickListener{
     private ExpandableListView expandableListView;
     private ListView customListView;
     private Spinner mSpinner;
@@ -45,7 +48,7 @@ public class ListFragment extends Fragment implements Spinner.OnItemSelectedList
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        RelativeLayout inflateView = (RelativeLayout) inflater.inflate(R.layout.list_fragment, container, false);
+        LinearLayout inflateView = (LinearLayout) inflater.inflate(R.layout.list_fragment, container, false);
         expandableListView = (ExpandableListView) inflateView.findViewById(R.id.exp_list);
         mSpinner = (Spinner) inflateView.findViewById(R.id.list_spinner);
         customListView = (ListView) inflateView.findViewById(R.id.def_list);
@@ -62,7 +65,50 @@ public class ListFragment extends Fragment implements Spinner.OnItemSelectedList
             @Override public void afterTextChanged(Editable s) { }
         });
 */
+        vremenka();
+        expandableAdapter= new ListExpandableAdapter(getActivity(), groupItemList,articleItemList);
+        expandableListView.setAdapter(expandableAdapter);
+        expandableListView.setOnChildClickListener(this);
+        //expandableListView.setOnGroupClickListener(this);
 
+        customAdapter = new ListCustomAdapter(getActivity(), articleItemList);
+
+        customListView.setAdapter(customAdapter);
+        mSpinner.setOnItemSelectedListener(this);
+        //customListView.setOnItemClickListener(this);
+
+        //registerForContextMenu(customListView);
+        //registerForContextMenu(expandableListView);
+        return inflateView;
+    }
+
+    @Override
+    public boolean onChildClick(ExpandableListView parent, View v, int groupPosition, int childPosition, long id) {
+        IClickListener listener = (IClickListener) getActivity();
+        ArticleItem articleItem=expandableAdapter.getChild(groupPosition,childPosition);
+        listener.getArticleToAnotherFragment(articleItem);
+
+        return false;
+    }
+
+    @Override
+    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+        switch (parent.getId()) {
+            case R.id.list_spinner:
+                if (position == 1) {
+                    customListView.setVisibility(View.VISIBLE);
+                    expandableListView.setVisibility(View.GONE);
+                } else {
+                    customListView.setVisibility(View.GONE);
+                    expandableListView.setVisibility(View.VISIBLE);
+                }
+                break;
+        }
+    }
+
+    @Override public void onNothingSelected(AdapterView<?> parent) { }
+
+    private void vremenka() {
         groupItemList = new ArrayList<>();
         groupItemList.add(new GroupItem(0,"Hello 1"));
         groupItemList.add(new GroupItem(1,"Hello 2"));
@@ -90,43 +136,12 @@ public class ListFragment extends Fragment implements Spinner.OnItemSelectedList
         articleItemList.add(new ArticleItem(5,"Hello 32","superdiscription",true,2,"2015","2015"));
         articleItemList.add(new ArticleItem(5,"Hello 32","superdiscription",true,2,"2015","2015"));
         articleItemList.add(new ArticleItem(5,"Hello 32","superdiscription",true,2,"2015","2015"));
-        expandableAdapter= new ListExpandableAdapter(getActivity(), groupItemList,articleItemList);
-        expandableListView.setAdapter(expandableAdapter);
-        //expandableListView.setOnChildClickListener(this);
-        //expandableListView.setOnGroupClickListener(this);
-
-        customAdapter = new ListCustomAdapter(getActivity(), articleItemList);
-
-        customListView.setAdapter(customAdapter);
-        mSpinner.setOnItemSelectedListener(this);
-        //customListView.setOnItemClickListener(this);
-
-        //registerForContextMenu(customListView);
-        //registerForContextMenu(expandableListView);
-        return inflateView;
     }
-
-    @Override
-    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-        switch (parent.getId()) {
-            case R.id.list_spinner:
-                if (position == 1) {
-                    customListView.setVisibility(View.VISIBLE);
-                    expandableListView.setVisibility(View.GONE);
-                } else {
-                    customListView.setVisibility(View.GONE);
-                    expandableListView.setVisibility(View.VISIBLE);
-                }
-                break;
-        }
-    }
-
-    @Override public void onNothingSelected(AdapterView<?> parent) { }
 }
 
   /*      implements
         CheckBox.OnClickListener, ListView.OnItemClickListener,
-        Spinner.OnItemSelectedListener, ExpandableListView.OnChildClickListener,
+        Spinner.OnItemSelectedListener,
         ExpandableListView.OnGroupClickListener, ISetCurrentItem {
 
 
@@ -142,74 +157,6 @@ public class ListFragment extends Fragment implements Spinner.OnItemSelectedList
     public ListFragment() {
     }
 
-    @Nullable
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        RelativeLayout inflateView = (RelativeLayout) inflater.inflate(R.layout.list_fragment, container, false);
-        expandableListView = (ExpandableListView) inflateView.findViewById(R.id.exp_list);
-        mSpinner = (Spinner) inflateView.findViewById(R.id.list_spinner);
-        defaultListView = (ListView) inflateView.findViewById(R.id.def_list);
-        checkBoxFavorite = (CheckBox) inflateView.findViewById(R.id.filter_favorite);
-        checkBoxFavorite.setOnClickListener(this);
-
-        mTextView = (TextView) inflateView.findViewById(R.id.filter);
-        mTextView.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                adapter.getFilter().filter(s);
-            }
-
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {
-            }
-        });
-
-        mSpinner.setOnItemSelectedListener(this);
-        groups = new ArrayList<>();
-        TypedArray stringListForExpanedList = getResources().obtainTypedArray(R.array.android_version);
-
-        for (int i = 0; i < stringListForExpanedList.length(); i++) {
-            ArrayList<ItemContainer> children1 = new ArrayList<>();
-            CharSequence[] strings = stringListForExpanedList.getTextArray(i);
-            for (int j = 0; j < strings.length; j++) {
-
-                ItemContainer itemContainer = new ItemContainer((String) strings[j], getIdResource(i), false, "");
-                children1.add(itemContainer);
-
-            }
-            groups.add(children1);
-        }
-        adapter = new ExpListAdapter(inflateView.getContext(), groups);
-        expandableListView.setAdapter(adapter);
-        expandableListView.setOnChildClickListener(this);
-        expandableListView.setOnGroupClickListener(this);
-
-
-        ArrayList<ItemContainer> stringListForDefaultList = new ArrayList<>();
-        for (int i = 0; i < stringListForExpanedList.length(); i++) {
-            CharSequence[] strings = stringListForExpanedList.getTextArray(i);
-            for (int j = 0; j < strings.length; j++) {
-
-                ItemContainer itemContainer = new ItemContainer((String) strings[j], getIdResource(i), false, "");
-                stringListForDefaultList.add(itemContainer);
-
-            }
-        }
-        stringListForExpanedList.recycle();
-
-        mListAdapter = new workViewHolder(getActivity(), stringListForDefaultList);
-
-        defaultListView.setAdapter(mListAdapter);
-        defaultListView.setOnItemClickListener(this);
-
-        registerForContextMenu(defaultListView);
-        registerForContextMenu(expandableListView);
-        return inflateView;
-    }
 
     @Override
     public void onCreateContextMenu(ContextMenu menu, View v,

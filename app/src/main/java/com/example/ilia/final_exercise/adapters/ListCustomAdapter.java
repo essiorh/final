@@ -45,5 +45,5 @@ public class ListCustomAdapter extends ArrayAdapter {
 
         return convertView;
     }
-    
+
 }

@@ -26,14 +26,14 @@ public class ListExpandableAdapter extends BaseExpandableListAdapter {
     private List<GroupItem> groupItemList = new ArrayList<>();
     private List<ArticleItem> articleItemList = new ArrayList<>();
     private LayoutInflater inflater;
-        private Context mContext;
+    private Context mContext;
 
-        public ListExpandableAdapter(Context context,List<GroupItem> groups,List<ArticleItem> articles) {
-            mContext = context;
-            groupItemList = groups;
-            articleItemList=articles;
-            inflater= (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        }
+    public ListExpandableAdapter(Context context,List<GroupItem> groups,List<ArticleItem> articles) {
+        mContext = context;
+        groupItemList = groups;
+        articleItemList=articles;
+        inflater= (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+    }
 
 
     @Override
@@ -53,7 +53,7 @@ public class ListExpandableAdapter extends BaseExpandableListAdapter {
     }
 
     @Override
-    public Object getChild(int groupPosition, int childPosition) {
+    public ArticleItem getChild(int groupPosition, int childPosition) {
         //добавить логику для вложенности
         return articleItemList.get(childPosition);
     }
@@ -75,35 +75,35 @@ public class ListExpandableAdapter extends BaseExpandableListAdapter {
     }
 
     @Override
-        public View getGroupView(int groupPosition, boolean isExpanded, View convertView,
-                                 ViewGroup parent) {
+    public View getGroupView(int groupPosition, boolean isExpanded, View convertView,
+                             ViewGroup parent) {
 
-            if (convertView == null) {
-                convertView = inflater.inflate(R.layout.group_view, null);
-            }
-
-            TextView textGroup = (TextView) convertView.findViewById(R.id.textGroup);
-            textGroup.setText("Group " + groupItemList.get(groupPosition).getmTitle());
-
-            return convertView;
+        if (convertView == null) {
+            convertView = inflater.inflate(R.layout.group_view, null);
         }
 
-        @Override
-        public View getChildView(int groupPosition, int childPosition, boolean isLastChild,
-                                 View convertView, ViewGroup parent) {
-            if (convertView == null) {
-                convertView = inflater.inflate(R.layout.child_view, null);
-            }
-            TextView textChild = (TextView) convertView.findViewById(R.id.textChild);
-            textChild.setText("Group " + articleItemList.get(groupPosition).getmTitle());
+        TextView textGroup = (TextView) convertView.findViewById(R.id.textGroup);
+        textGroup.setText("Group " + groupItemList.get(groupPosition).getmTitle());
 
-            return convertView;
-        }
+        return convertView;
+    }
 
-        @Override
-        public boolean isChildSelectable(int groupPosition, int childPosition) {
-            return true;
+    @Override
+    public View getChildView(int groupPosition, int childPosition, boolean isLastChild,
+                             View convertView, ViewGroup parent) {
+        if (convertView == null) {
+            convertView = inflater.inflate(R.layout.child_view, null);
         }
+        TextView textChild = (TextView) convertView.findViewById(R.id.textChild);
+        textChild.setText("Group " + articleItemList.get(groupPosition).getmTitle());
+
+        return convertView;
+    }
+
+    @Override
+    public boolean isChildSelectable(int groupPosition, int childPosition) {
+        return true;
+    }
 
 
 }

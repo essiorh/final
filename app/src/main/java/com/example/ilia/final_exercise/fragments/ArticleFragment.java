@@ -15,11 +15,13 @@ import android.widget.Switch;
 import android.widget.TextView;
 
 import com.example.ilia.final_exercise.R;
+import com.example.ilia.final_exercise.interfaces.IClickListener;
+import com.example.ilia.final_exercise.models.ArticleItem;
 
 /**
  * Created by ilia on 16.06.15.
  */
-public class ArticleFragment extends Fragment {
+public class ArticleFragment extends Fragment implements IClickListener {
     private TextView textTitle;
     private TextView textDescription;
     private Spinner spinnerCategory;
@@ -31,7 +33,6 @@ public class ArticleFragment extends Fragment {
 
     public ArticleFragment(){}
 
-    @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         LinearLayout inflateView = (LinearLayout) inflater.inflate(R.layout.article_view, container, false);
@@ -47,5 +48,14 @@ public class ArticleFragment extends Fragment {
 
 
         return inflateView;
+    }
+
+    @Override
+    public void getArticleToAnotherFragment(ArticleItem articleItem) {
+        textTitle.setText(articleItem.getmTitle());
+        textDescription.setText(articleItem.getmDescription());
+        switchPublished.setSelected(articleItem.ismPublished());
+
+
     }
 }
