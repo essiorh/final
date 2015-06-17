@@ -5,20 +5,18 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.ListAdapter;
 import android.widget.TextView;
 
 import com.example.ilia.final_exercise.R;
-import com.example.ilia.final_exercise.models.ArticleItem;
+import com.example.ilia.final_exercise.database.ArticleItem;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * Created by ilia on 16.06.15.
  */
-public class ListCustomAdapter extends ArrayAdapter {
+public class ListCustomAdapter extends ArrayAdapter<ArticleItem> {
     private List<ArticleItem> articleItemList = new ArrayList<>();
     private Context mContext;
     private LayoutInflater inflater;
@@ -31,8 +29,22 @@ public class ListCustomAdapter extends ArrayAdapter {
     }
 
     @Override
-    public Object getItem(int position) {
+    public ArticleItem getItem(int position) {
         return articleItemList.get(position);
+    }
+
+    @Override
+    public int getCount() {
+        return articleItemList.size();
+    }
+
+    @Override
+    public long getItemId(int position) {
+        return position;
+    }
+
+    public void setArticleItemList(List<ArticleItem> articleItemList) {
+        this.articleItemList = articleItemList;
     }
 
     @Override

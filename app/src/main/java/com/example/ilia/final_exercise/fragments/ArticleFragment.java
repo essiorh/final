@@ -1,5 +1,6 @@
 package com.example.ilia.final_exercise.fragments;
 
+import android.content.ContentValues;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -14,9 +15,17 @@ import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.TextView;
 
+import com.example.ilia.final_exercise.AppController;
 import com.example.ilia.final_exercise.R;
+import com.example.ilia.final_exercise.database.AppContentProvider;
+import com.example.ilia.final_exercise.database.AppSQLiteOpenHelper;
 import com.example.ilia.final_exercise.interfaces.IClickListener;
-import com.example.ilia.final_exercise.models.ArticleItem;
+import com.example.ilia.final_exercise.interfaces.IStateItemChange;
+import com.example.ilia.final_exercise.database.ArticleItem;
+
+import java.util.Date;
+
+import static com.example.ilia.final_exercise.database.AppSQLiteOpenHelper.*;
 
 /**
  * Created by ilia on 16.06.15.
@@ -86,6 +95,43 @@ public class ArticleFragment extends Fragment implements IClickListener, View.On
                 spinnerCategory.setEnabled(true);
                 break;
             case R.id.button_save:
+                /*if (mArticleItem!=null) {
+                    mArticleItem.setmTitle(textTitle.getText().toString());
+                    IStateItemChange iStateItemChange=(IStateItemChange)getActivity();
+                    iStateItemChange.updateArticleItem(mArticleItem);*/
+                    String title		=  textTitle.getText().toString();
+                    String description	= textDescription.getText().toString();
+                    long updated		= (new Date()).getTime();
+                    //long categoryId		= mCategories.get(mSpinner.getSelectedItemPosition()).getId();
+                    //if (mCreatedDate == 0) mCreatedDate = updated;
+                    boolean isPublished	= switchPublished.isChecked();
+                    // only save if title or description
+                    // is available
+
+                    if (description.length() == 0 || title.length() == 0) {
+                        return;
+                    }
+
+                    ContentValues values = new ContentValues();
+                    values.put(COLUMN_TITLE, 		title);
+                    values.put(ARTICLES_COLUMN_DESCRIPTION, 	description);
+                    values.put(ARTICLES_COLUMN_CATEGORY_ID, 	0);
+                    values.put(ARTICLES_COLUMN_CREATE_AT, 		updated);
+                    values.put(ARTICLES_COLUMN_UPDATE_AT, 		updated);
+                    values.put(ARTICLES_COLUMN_PUBLISHED, 	isPublished);
+
+
+                    /*if (mArticleUri == null) {
+                        // New todo
+                        mArticleUri = AppController.getAppContext().getContentResolver()
+                                .insert(AppContentProvider.CONTENT_URI_ARTICLES, values);
+                    } else {
+                        // Update todo
+                        AppController.getAppContext().getContentResolver()
+                                .update(mArticleUri, values, null, null);
+                    }
+*/
+                //}
                 spinnerCategory.setVisibility(View.INVISIBLE);
                 buttonSave.setVisibility(View.INVISIBLE);
                 textTitle.setEnabled(false);

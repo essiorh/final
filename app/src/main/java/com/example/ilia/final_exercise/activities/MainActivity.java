@@ -6,7 +6,8 @@ import android.support.v4.app.Fragment;
 
 import com.example.ilia.final_exercise.R;
 import com.example.ilia.final_exercise.interfaces.IClickListener;
-import com.example.ilia.final_exercise.models.ArticleItem;
+import com.example.ilia.final_exercise.interfaces.IStateItemChange;
+import com.example.ilia.final_exercise.database.ArticleItem;
 
 
 public class MainActivity extends BaseActivity {
@@ -40,6 +41,8 @@ public class MainActivity extends BaseActivity {
 
     @Override
     public void updateArticleItem(ArticleItem articleItem) {
+        IStateItemChange iClickListener=(IStateItemChange)fragmentList;
+        iClickListener.updateArticleItem(articleItem);
     }
 
     @Override

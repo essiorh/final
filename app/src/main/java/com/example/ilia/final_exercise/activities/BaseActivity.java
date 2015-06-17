@@ -4,7 +4,7 @@ import android.support.v7.app.AppCompatActivity;
 
 import com.example.ilia.final_exercise.interfaces.IClickListener;
 import com.example.ilia.final_exercise.interfaces.IStateItemChange;
-import com.example.ilia.final_exercise.models.ArticleItem;
+import com.example.ilia.final_exercise.database.ArticleItem;
 
 /**
  * Created by ilia on 16.06.15.

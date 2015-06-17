@@ -17,6 +17,11 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <provider
+            android:authorities="com.app.content_provider"
+            android:name="com.example.ilia.final_exercise.database.AppContentProvider"
+            android:exported="false"/>
+
     </application>
 
 </manifest>

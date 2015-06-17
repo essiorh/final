@@ -1,60 +1,54 @@
 package com.example.ilia.final_exercise.fragments;
 
-import android.content.res.TypedArray;
+import android.database.Cursor;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.text.Editable;
-import android.text.TextWatcher;
-import android.util.Log;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.CheckBox;
 import android.widget.ExpandableListView;
 import android.widget.LinearLayout;
-import android.widget.ListAdapter;
 import android.widget.ListView;
-import android.widget.RelativeLayout;
+import android.widget.SimpleCursorAdapter;
 import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.VolleyLog;
-import com.android.volley.toolbox.JsonArrayRequest;
-import com.example.ilia.final_exercise.AppController;
 import com.example.ilia.final_exercise.R;
 import com.example.ilia.final_exercise.activities.MainActivity;
 import com.example.ilia.final_exercise.adapters.ListCustomAdapter;
 import com.example.ilia.final_exercise.adapters.ListExpandableAdapter;
+import com.example.ilia.final_exercise.database.AppContentProvider;
+import com.example.ilia.final_exercise.database.AppSQLiteOpenHelper;
 import com.example.ilia.final_exercise.interfaces.IClickListener;
-import com.example.ilia.final_exercise.models.ArticleItem;
-import com.example.ilia.final_exercise.models.GroupItem;
+import com.example.ilia.final_exercise.interfaces.IStateItemChange;
+import com.example.ilia.final_exercise.database.ArticleItem;
+import com.example.ilia.final_exercise.database.GroupItem;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.w3c.dom.Text;
-
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.example.ilia.final_exercise.database.AppSQLiteOpenHelper.*;
 
 /**
  * Created by ilia on 08.06.15.
  */
 public class ListFragment extends Fragment implements Spinner.OnItemSelectedListener,
-        ExpandableListView.OnChildClickListener, ListView.OnItemClickListener {
+        ExpandableListView.OnChildClickListener, ListView.OnItemClickListener,
+        IStateItemChange, LoaderManager.LoaderCallbacks<Cursor> {
     private ExpandableListView expandableListView;
     private ListView customListView;
     private Spinner mSpinner;
     private ListExpandableAdapter expandableAdapter;
-    private ListAdapter customAdapter;
+    private ListCustomAdapter customAdapter;
     private TextView mTextView;
     private List<GroupItem> groupItemList = new ArrayList<>();
     private List<ArticleItem> articleItemList = new ArrayList<>();
+    private SimpleCursorAdapter cursorAdapterAdapter;
+
     // json array response url
     private String urlJsonArry = "http://api.androidhive.info/volley/person_array.json";
     // temporary string to show the parsed response
@@ -90,9 +84,19 @@ public class ListFragment extends Fragment implements Spinner.OnItemSelectedList
         expandableListView.setOnChildClickListener(this);
         //expandableListView.setOnGroupClickListener(this);
 
+        // Fields from the database (projection)
+        // Must include the _id column for the adapter to work
+        String[] from = new String[]{AppSQLiteOpenHelper.COLUMN_TITLE};
+        // Fields on the UI to which we map
+        int[] to = new int[]{R.id.textChild};
+
         customAdapter = new ListCustomAdapter(getActivity(), articleItemList);
 
-        customListView.setAdapter(customAdapter);
+        getLoaderManager().initLoader(0, null, this);
+
+        cursorAdapterAdapter = new SimpleCursorAdapter(getActivity(), R.layout.child_view, null, from, to, 0);
+        customListView.setAdapter(cursorAdapterAdapter);
+
         mSpinner.setOnItemSelectedListener(this);
         customListView.setOnItemClickListener(this);
 
@@ -131,7 +135,7 @@ public class ListFragment extends Fragment implements Spinner.OnItemSelectedList
 
     private void vremenka() {
 
-        groupItemList = new ArrayList<>();
+        /*groupItemList = new ArrayList<>();
         groupItemList.add(new GroupItem(0, "Hello 1"));
         groupItemList.add(new GroupItem(1, "Hello 1"));
         groupItemList.add(new GroupItem(2, "Hello 1"));
@@ -143,14 +147,64 @@ public class ListFragment extends Fragment implements Spinner.OnItemSelectedList
         articleItemList.add(new ArticleItem(3, "Hello 11", "superdiscription", true, 1, "2015", "2015", false, null));
         articleItemList.add(new ArticleItem(4, "Hello 20", "superdiscription", true, 2, "2015", "2015", false, null));
         articleItemList.add(new ArticleItem(5, "Hello 21", "superdiscription", true, 2, "2015", "2015", false, null));
+    */
+
     }
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         IClickListener listener = (IClickListener) getActivity();
-        ArticleItem articleItem = (ArticleItem) customAdapter.getItem(position);
+        ArticleItem articleItem = customAdapter.getItem(position);
         listener.getArticleToAnotherFragment(articleItem);
 
+    }
+
+    @Override
+    public void deleteArticleItem(ArticleItem articleItem) {
+
+    }
+
+    @Override
+    public void updateArticleItem(ArticleItem articleItem) {
+        for(int i=0;i<articleItemList.size();i++) {
+            if (customAdapter.getItem(i).get_id()==articleItem.get_id()) {
+                articleItemList.get(i).setmCategory_id(articleItem.getmCategory_id());
+                articleItemList.get(i).setmPublished(articleItem.ismPublished());
+                articleItemList.get(i).setmCreate_at(articleItem.getmCreate_at());
+                articleItemList.get(i).setmDescription(articleItem.getmDescription());
+                articleItemList.get(i).setmOwn(articleItem.getmOwn());
+                articleItemList.get(i).setmPhoto(articleItem.getmPhoto());
+                articleItemList.get(i).setmTitle(articleItem.getmTitle());
+                articleItemList.get(i).setmUpdate_at(articleItem.getmUpdate_at());
+                customAdapter.setArticleItemList(articleItemList);
+                customAdapter.notifyDataSetChanged();
+
+            }
+        }
+    }
+
+    @Override
+    public void addArticleItem(ArticleItem articleItem) {
+
+    }
+
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        String[] projection = { COLUMN_ID, COLUMN_TITLE };
+        CursorLoader cursorLoader = new CursorLoader(getActivity(),
+                AppContentProvider.CONTENT_URI_ARTICLES, projection, null, null, null);
+        return cursorLoader;
+    }
+
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        cursorAdapterAdapter.swapCursor(data);
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+        cursorAdapterAdapter.swapCursor(null);
     }
 }
 /*

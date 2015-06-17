@@ -5,15 +5,11 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseExpandableListAdapter;
-import android.widget.CheckBox;
-import android.widget.ExpandableListView;
-import android.widget.Filter;
-import android.widget.Filterable;
 import android.widget.TextView;
 
 import com.example.ilia.final_exercise.R;
-import com.example.ilia.final_exercise.models.ArticleItem;
-import com.example.ilia.final_exercise.models.GroupItem;
+import com.example.ilia.final_exercise.database.ArticleItem;
+import com.example.ilia.final_exercise.database.GroupItem;
 
 import java.util.ArrayList;
 import java.util.List;
