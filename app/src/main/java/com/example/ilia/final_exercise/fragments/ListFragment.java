@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,24 +18,35 @@ import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.VolleyLog;
+import com.android.volley.toolbox.JsonArrayRequest;
+import com.example.ilia.final_exercise.AppController;
 import com.example.ilia.final_exercise.R;
+import com.example.ilia.final_exercise.activities.MainActivity;
 import com.example.ilia.final_exercise.adapters.ListCustomAdapter;
 import com.example.ilia.final_exercise.adapters.ListExpandableAdapter;
 import com.example.ilia.final_exercise.interfaces.IClickListener;
 import com.example.ilia.final_exercise.models.ArticleItem;
 import com.example.ilia.final_exercise.models.GroupItem;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.w3c.dom.Text;
 
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Created by ilia on 08.06.15.
  */
-public class ListFragment extends Fragment implements Spinner.OnItemSelectedListener
-        , ExpandableListView.OnChildClickListener{
+public class ListFragment extends Fragment implements Spinner.OnItemSelectedListener,
+        ExpandableListView.OnChildClickListener, ListView.OnItemClickListener {
     private ExpandableListView expandableListView;
     private ListView customListView;
     private Spinner mSpinner;
@@ -43,6 +55,13 @@ public class ListFragment extends Fragment implements Spinner.OnItemSelectedList
     private TextView mTextView;
     private List<GroupItem> groupItemList = new ArrayList<>();
     private List<ArticleItem> articleItemList = new ArrayList<>();
+    // json array response url
+    private String urlJsonArry = "http://api.androidhive.info/volley/person_array.json";
+    // temporary string to show the parsed response
+    private String jsonResponse;
+
+    private static String TAG = MainActivity.class.getSimpleName();
+
     public ListFragment() {
     }
 
@@ -66,7 +85,7 @@ public class ListFragment extends Fragment implements Spinner.OnItemSelectedList
         });
 */
         vremenka();
-        expandableAdapter= new ListExpandableAdapter(getActivity(), groupItemList,articleItemList);
+        expandableAdapter = new ListExpandableAdapter(getActivity(), groupItemList, articleItemList);
         expandableListView.setAdapter(expandableAdapter);
         expandableListView.setOnChildClickListener(this);
         //expandableListView.setOnGroupClickListener(this);
@@ -75,7 +94,7 @@ public class ListFragment extends Fragment implements Spinner.OnItemSelectedList
 
         customListView.setAdapter(customAdapter);
         mSpinner.setOnItemSelectedListener(this);
-        //customListView.setOnItemClickListener(this);
+        customListView.setOnItemClickListener(this);
 
         //registerForContextMenu(customListView);
         //registerForContextMenu(expandableListView);
@@ -85,7 +104,7 @@ public class ListFragment extends Fragment implements Spinner.OnItemSelectedList
     @Override
     public boolean onChildClick(ExpandableListView parent, View v, int groupPosition, int childPosition, long id) {
         IClickListener listener = (IClickListener) getActivity();
-        ArticleItem articleItem=expandableAdapter.getChild(groupPosition,childPosition);
+        ArticleItem articleItem = expandableAdapter.getChild(groupPosition, childPosition);
         listener.getArticleToAnotherFragment(articleItem);
 
         return false;
@@ -106,36 +125,84 @@ public class ListFragment extends Fragment implements Spinner.OnItemSelectedList
         }
     }
 
-    @Override public void onNothingSelected(AdapterView<?> parent) { }
+    @Override
+    public void onNothingSelected(AdapterView<?> parent) {
+    }
 
     private void vremenka() {
+
         groupItemList = new ArrayList<>();
-        groupItemList.add(new GroupItem(0,"Hello 1"));
-        groupItemList.add(new GroupItem(1,"Hello 2"));
-        groupItemList.add(new GroupItem(2,"Hello 3"));
-        groupItemList.add(new GroupItem(2,"Hello 3"));
-        groupItemList.add(new GroupItem(2,"Hello 3"));
-        groupItemList.add(new GroupItem(2,"Hello 3"));
-        groupItemList.add(new GroupItem(2,"Hello 3"));
-        groupItemList.add(new GroupItem(2,"Hello 3"));
-        groupItemList.add(new GroupItem(2,"Hello 3"));
-        groupItemList.add(new GroupItem(2,"Hello 3"));
-        groupItemList.add(new GroupItem(2,"Hello 3"));
-        groupItemList.add(new GroupItem(2,"Hello 3"));
-        groupItemList.add(new GroupItem(2,"Hello 3"));
-        groupItemList.add(new GroupItem(2,"Hello 3"));
-        articleItemList=new ArrayList<>();
-        articleItemList.add(new ArticleItem(0,"Hello 11","superdiscription",true,0,"2015","2015"));
-        articleItemList.add(new ArticleItem(1,"Hello 12","superdiscription",true,0,"2015","2015"));
-        articleItemList.add(new ArticleItem(2,"Hello 21","superdiscription",true,1,"2015","2015"));
-        articleItemList.add(new ArticleItem(3,"Hello 22","superdiscription",true,1,"2015","2015"));
-        articleItemList.add(new ArticleItem(4,"Hello 31","superdiscription",true,2,"2015","2015"));
-        articleItemList.add(new ArticleItem(5,"Hello 32","superdiscription",true,2,"2015","2015"));
-        articleItemList.add(new ArticleItem(5,"Hello 32","superdiscription",true,2,"2015","2015"));
-        articleItemList.add(new ArticleItem(5,"Hello 32","superdiscription",true,2,"2015","2015"));
-        articleItemList.add(new ArticleItem(5,"Hello 32","superdiscription",true,2,"2015","2015"));
-        articleItemList.add(new ArticleItem(5,"Hello 32","superdiscription",true,2,"2015","2015"));
-        articleItemList.add(new ArticleItem(5,"Hello 32","superdiscription",true,2,"2015","2015"));
+        groupItemList.add(new GroupItem(0, "Hello 1"));
+        groupItemList.add(new GroupItem(1, "Hello 1"));
+        groupItemList.add(new GroupItem(2, "Hello 1"));
+
+        articleItemList = new ArrayList<>();
+        articleItemList.add(new ArticleItem(0, "Hello 00", "superdiscription", true, 0, "2015", "2015", false, null));
+        articleItemList.add(new ArticleItem(1, "Hello 01", "superdiscription", true, 0, "2015", "2015", false, null));
+        articleItemList.add(new ArticleItem(2, "Hello 10", "superdiscription", true, 1, "2015", "2015", false, null));
+        articleItemList.add(new ArticleItem(3, "Hello 11", "superdiscription", true, 1, "2015", "2015", false, null));
+        articleItemList.add(new ArticleItem(4, "Hello 20", "superdiscription", true, 2, "2015", "2015", false, null));
+        articleItemList.add(new ArticleItem(5, "Hello 21", "superdiscription", true, 2, "2015", "2015", false, null));
+    }
+
+    @Override
+    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+        IClickListener listener = (IClickListener) getActivity();
+        ArticleItem articleItem = (ArticleItem) customAdapter.getItem(position);
+        listener.getArticleToAnotherFragment(articleItem);
+
+    }
+}
+/*
+        JsonArrayRequest req = new JsonArrayRequest(urlJsonArry,
+                new Response.Listener<JSONArray>() {
+                    @Override
+                    public void onResponse(JSONArray response) {
+                        Log.d(TAG, response.toString());
+
+                        try {
+                            // Parsing json array response
+                            // loop through each json object
+                            jsonResponse = "";
+                            for (int i = 0; i < response.length(); i++) {
+
+                                JSONObject person = (JSONObject) response
+                                        .get(i);
+
+                                String name = person.getString("name");
+                                String email = person.getString("email");
+                                JSONObject phone = person
+                                        .getJSONObject("phone");
+                                String home = phone.getString("home");
+                                String mobile = phone.getString("mobile");
+
+                                jsonResponse += "Name: " + name + "\n\n";
+                                jsonResponse += "Email: " + email + "\n\n";
+                                jsonResponse += "Home: " + home + "\n\n";
+                                jsonResponse += "Mobile: " + mobile + "\n\n\n";
+
+                            }
+
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                            Toast.makeText(getActivity().getApplicationContext(),
+                                    "Error: " + e.getMessage(),
+                                    Toast.LENGTH_LONG).show();
+                        }
+                    }
+                }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                VolleyLog.d(TAG, "Error: " + error.getMessage());
+                Toast.makeText(getActivity().getApplicationContext(),
+                        error.getMessage(), Toast.LENGTH_SHORT).show();
+
+            }
+        });
+
+        // Adding request to request queue
+        AppController.getInstance().addToRequestQueue(req);
+
     }
 }
 

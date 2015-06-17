@@ -13,6 +13,7 @@ import com.example.ilia.final_exercise.models.ArticleItem;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Created by ilia on 16.06.15.
@@ -29,6 +30,10 @@ public class ListCustomAdapter extends ArrayAdapter {
                 .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
     }
 
+    @Override
+    public Object getItem(int position) {
+        return articleItemList.get(position);
+    }
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {

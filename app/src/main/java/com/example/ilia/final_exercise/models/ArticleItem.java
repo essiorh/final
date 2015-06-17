@@ -1,5 +1,7 @@
 package com.example.ilia.final_exercise.models;
 
+import java.net.URL;
+
 /**
  * Created by ilia on 16.06.15.
  */
@@ -11,8 +13,10 @@ public class ArticleItem {
     private int mCategory_id;
     private String mCreate_at;
     private String mUpdate_at;
+    private Boolean mOwn;
+    private URL mPhoto;
 
-    public ArticleItem(int id, String title, String discr, boolean publ, int category_id, String creat_at, String update_at) {
+    public ArticleItem(int id, String title, String discr, boolean publ, int category_id, String creat_at, String update_at, boolean own, URL photo) {
         _id = id;
         mTitle = title;
         mDescription = discr;
@@ -20,6 +24,8 @@ public class ArticleItem {
         mCategory_id = category_id;
         mCreate_at = creat_at;
         mUpdate_at = update_at;
+        mOwn = own;
+        mPhoto = photo;
     }
 
     public ArticleItem() {
@@ -80,5 +86,21 @@ public class ArticleItem {
 
     public void setmUpdate_at(String mUpdate_at) {
         this.mUpdate_at = mUpdate_at;
+    }
+
+    public Boolean getmOwn() {
+        return mOwn;
+    }
+
+    public void setmOwn(Boolean mOwn) {
+        this.mOwn = mOwn;
+    }
+
+    public URL getmPhoto() {
+        return mPhoto;
+    }
+
+    public void setmPhoto(URL mPhoto) {
+        this.mPhoto = mPhoto;
     }
 }

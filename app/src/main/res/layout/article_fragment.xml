@@ -7,53 +7,60 @@
         android:layout_height="0dp"
         android:layout_weight="0.1"
         android:orientation="horizontal">
-        <Button
-            android:textSize="10sp"
 
-            android:layout_width="wrap_content"
-            android:layout_height="35dp"
-            android:text="New Button"
-            android:id="@+id/button" />
         <Button
-            android:id="@+id/button2"
             android:textSize="10sp"
             android:layout_width="wrap_content"
             android:layout_height="35dp"
-            android:text="New button"
+            android:text="@string/view"
+            android:id="@+id/button_view" />
+
+        <Button
+            android:id="@+id/button_edit"
+            android:textSize="10sp"
+            android:layout_width="wrap_content"
+            android:layout_height="35dp"
+            android:text="@string/edit"
             android:includeFontPadding="true" />
 
-
-
-
     </LinearLayout>
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="0.4"
         android:orientation="horizontal">
+
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="0.5"
             android:orientation="vertical">
+
             <EditText
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:id="@+id/editText" />
+                android:id="@+id/editText"
+                android:enabled="false" />
 
             <EditText
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="textMultiLine"
                 android:ems="10"
+                android:maxLines="3"
+                android:minLines="3"
+                android:enabled="false"
                 android:id="@+id/editText2" />
-            </LinearLayout>
+        </LinearLayout>
 
         <ImageView
             android:layout_width="0dp"
             android:layout_weight="0.5"
             android:layout_height="match_parent"
-            android:id="@+id/imageView" />
+            android:id="@+id/imageView"
+            android:enabled="false"
+            android:src="@android:drawable/btn_star"/>
 
     </LinearLayout>
 
@@ -61,29 +68,37 @@
         android:layout_width="wrap_content"
         android:layout_weight="0.1"
         android:layout_height="0dp"
-        android:id="@+id/spinner" />
+        android:id="@+id/spinner"
+        android:visibility="invisible"
+        android:enabled="false" />
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="0.2"
         android:orientation="horizontal">
+
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceSmall"
-            android:text="Small Text"
-            android:id="@+id/textView" />
+            android:text="@string/published"
+            android:id="@+id/textView"
+            android:visibility="invisible" />
 
         <Switch
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/switch1" />
+
     </LinearLayout>
 
     <Button
         android:layout_width="wrap_content"
         android:layout_weight="0.2"
         android:layout_height="0dp"
-        android:text="New Button"
-        android:id="@+id/button3" />
+        android:text="@string/save"
+        android:id="@+id/button_save"
+        android:visibility="invisible" />
+
 </LinearLayout>

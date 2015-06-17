@@ -25,6 +25,7 @@ public class ListExpandableAdapter extends BaseExpandableListAdapter {
 
     private List<GroupItem> groupItemList = new ArrayList<>();
     private List<ArticleItem> articleItemList = new ArrayList<>();
+    private List<List<ArticleItem>> arrayGroupsAndArticles=new ArrayList<>();
     private LayoutInflater inflater;
     private Context mContext;
 
@@ -33,8 +34,8 @@ public class ListExpandableAdapter extends BaseExpandableListAdapter {
         groupItemList = groups;
         articleItemList=articles;
         inflater= (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        connectGroupsWithArticles(groups, articles);
     }
-
 
     @Override
     public int getGroupCount() {
@@ -44,7 +45,7 @@ public class ListExpandableAdapter extends BaseExpandableListAdapter {
     @Override
     public int getChildrenCount(int groupPosition) {
         //добавить логику для вложености
-        return articleItemList.size();
+        return arrayGroupsAndArticles.get(groupPosition).size();
     }
 
     @Override
@@ -55,7 +56,7 @@ public class ListExpandableAdapter extends BaseExpandableListAdapter {
     @Override
     public ArticleItem getChild(int groupPosition, int childPosition) {
         //добавить логику для вложенности
-        return articleItemList.get(childPosition);
+        return arrayGroupsAndArticles.get(groupPosition).get(childPosition);
     }
 
     @Override
@@ -83,7 +84,7 @@ public class ListExpandableAdapter extends BaseExpandableListAdapter {
         }
 
         TextView textGroup = (TextView) convertView.findViewById(R.id.textGroup);
-        textGroup.setText("Group " + groupItemList.get(groupPosition).getmTitle());
+        textGroup.setText(groupItemList.get(groupPosition).getmTitle());
 
         return convertView;
     }
@@ -95,7 +96,7 @@ public class ListExpandableAdapter extends BaseExpandableListAdapter {
             convertView = inflater.inflate(R.layout.child_view, null);
         }
         TextView textChild = (TextView) convertView.findViewById(R.id.textChild);
-        textChild.setText("Group " + articleItemList.get(groupPosition).getmTitle());
+        textChild.setText(arrayGroupsAndArticles.get(groupPosition).get(childPosition).getmTitle());
 
         return convertView;
     }
@@ -105,5 +106,17 @@ public class ListExpandableAdapter extends BaseExpandableListAdapter {
         return true;
     }
 
-
+    private void connectGroupsWithArticles(List<GroupItem> groups, List<ArticleItem> articles) {
+        for (int i=0;i<groups.size();i++) {
+            List<ArticleItem> currentList=new ArrayList<>();
+            for (int j=0;j<articles.size();j++) {
+                if (groups.get(i).get_id()==articles.get(j).getmCategory_id()) {
+                    currentList.add(articles.get(j));
+                }
+            }
+            if (currentList.size()>0) {
+                arrayGroupsAndArticles.add(currentList);
+            }
+        }
+    }
 }

@@ -1,57 +1,73 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
+    <Spinner
+        android:id="@+id/list_spinner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:entries="@array/spinner_values"/>
     <LinearLayout
         android:layout_alignParentTop="true"
         android:layout_width="match_parent"
-        android:layout_height="50dp"
+        android:layout_height="wrap_content"
         android:orientation="horizontal">
+        <ImageButton
+            android:id="@+id/refresh"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="@android:drawable/stat_notify_sync"
+            android:background="@android:color/transparent" />
         <EditText
             android:id="@+id/filter"
             android:layout_weight="0.5"
             android:layout_width="0dp"
             android:layout_height="match_parent" />
-        <LinearLayout
-            android:layout_weight="0.2"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:orientation="vertical">
-            <TextView
-                android:layout_weight="0.5"
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:text="@string/favorite"/>
-            <CheckBox
-                android:id="@+id/filter_favorite"
-                android:layout_weight="0.5"
-                android:layout_width="match_parent"
-                android:layout_height="0dp" />
-        </LinearLayout>
+        <ImageButton
+            android:id="@+id/start_filter"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="@android:drawable/ic_menu_search"
+            android:background="@android:color/transparent" />
 
-        <Spinner
-            android:id="@+id/list_spinner"
-            android:layout_weight="0.3"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:entries="@array/spinner_values">
 
-        </Spinner>
     </LinearLayout>
-
-
-    <ExpandableListView
-        android:layout_alignParentBottom="true"
-        android:id="@+id/exp_list"
+    <TextView
+        android:text="@string/filters"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="200dp"
-        />
+        android:layout_height="wrap_content">
+        <TextView
+            android:text="@string/only_my"
+            android:layout_alignParentLeft="true"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+        <Switch
+            android:id="@+id/switch_only_my"
+            android:layout_alignParentRight="true"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+    </RelativeLayout>
+    <RelativeLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+        <ExpandableListView
+            android:layout_alignParentBottom="true"
+            android:id="@+id/exp_list"
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            />
 
-    <ListView
-        android:id="@+id/def_list"
-        android:layout_alignParentBottom="true"
-        android:layout_width="match_parent"
-        android:layout_height="200dp"/>
+        <ListView
+            android:id="@+id/def_list"
+            android:layout_alignParentBottom="true"
+            android:layout_width="match_parent"
+            android:layout_height="200dp"/>
+
+    </RelativeLayout>
 
 
-</RelativeLayout>
+</LinearLayout>

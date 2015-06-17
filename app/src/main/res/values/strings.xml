@@ -1,9 +1,15 @@
 <resources>
-    <string name="app_name">Exercise_four</string>
+    <string name="app_name">Final</string>
 
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
     <string name="favorite">Favorite</string>
+    <string name="filters">Filters:</string>
+    <string name="only_my">only my</string>
+    <string name="view">View</string>
+    <string name="edit">Edit</string>
+    <string name="published">Published ?</string>
+    <string name="save">Save</string>
 
 
     <string-array name="spinner_values">
