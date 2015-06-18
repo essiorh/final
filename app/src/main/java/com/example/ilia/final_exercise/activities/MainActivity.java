@@ -22,8 +22,8 @@ public class MainActivity extends BaseActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        //setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         setContentView(R.layout.activity_main);
-        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         fragmentList=getSupportFragmentManager().findFragmentById(R.id.frg_list);
         fragmentArticle=getSupportFragmentManager().findFragmentById(R.id.frg_article);
 

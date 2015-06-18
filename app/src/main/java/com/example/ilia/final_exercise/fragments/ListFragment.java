@@ -112,7 +112,7 @@ public class ListFragment extends Fragment implements Spinner.OnItemSelectedList
 
         cursorAdapter = new SimpleCursorAdapter(getActivity(), R.layout.child_view, null, from, to, 0);
         customListView.setAdapter(cursorAdapter);
-        //request();
+        request();
         mSpinner.setOnItemSelectedListener(this);
         customListView.setOnItemClickListener(this);
 
