@@ -7,7 +7,11 @@ import android.content.Context;
 import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
+
+import java.util.Arrays;
+import java.util.HashSet;
 
 import static com.example.ilia.final_exercise.database.AppSQLiteOpenHelper.*;
 
@@ -18,16 +22,20 @@ public class AppContentProvider extends ContentProvider {
     public static final Uri CONTENT_URI_ARTICLES = Uri.parse("content://" + AUTHORITY + "/" + TABLE_ARTICLES);
     public static final Uri CONTENT_URI_CATEGORIES = Uri.parse("content://" + AUTHORITY + "/" + TABLE_CATEGORIES);
 
-    private static final int CODE_ARTICLES = 0;
-    private static final int CODE_CATEGORIES = 1;
+    // used for the UriMacher
+    private static final int CODE_ONE_ARTICLE = 0;
+    private static final int CODE_ALL_ARTICLES = 1;
+    private static final int CODE_CATEGORIES = 2;
 
     private static final UriMatcher URI_MATCHER = new UriMatcher(UriMatcher.NO_MATCH);
 
     static {
-        URI_MATCHER.addURI(AUTHORITY, TABLE_ARTICLES, CODE_ARTICLES);
+        URI_MATCHER.addURI(AUTHORITY, TABLE_ARTICLES+"/#", CODE_ONE_ARTICLE);
+        URI_MATCHER.addURI(AUTHORITY, TABLE_ARTICLES, CODE_ALL_ARTICLES);
         URI_MATCHER.addURI(AUTHORITY, TABLE_CATEGORIES, CODE_CATEGORIES);
     }
 
+    // database
     private static AppSQLiteOpenHelper dbHelper;
 
     public synchronized static AppSQLiteOpenHelper getDbHelper(Context context) {
@@ -45,81 +53,105 @@ public class AppContentProvider extends ContentProvider {
 
     @Override
     public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
-        int match = URI_MATCHER.match(uri);
-        switch (match) {
-            case CODE_CATEGORIES:
-                return getGroups();
+        // Uisng SQLiteQueryBuilder instead of query() method
+        SQLiteQueryBuilder queryBuilder = new SQLiteQueryBuilder();
+
+        // Set the table
+        queryBuilder.setTables(TABLE_ARTICLES);
+        int uriType = URI_MATCHER.match(uri);
+        switch (uriType) {
+            case CODE_ALL_ARTICLES:
+                break;
+            case CODE_ONE_ARTICLE:
+                // adding the ID to the original query
+                queryBuilder.appendWhere(COLUMN_ID + "="
+                        + uri.getLastPathSegment());
+                break;
+            default:
+                throw new IllegalArgumentException("Unknown URI: " + uri);
         }
-        String table = parseUri(uri);
-        Cursor cursor = dbHelper.getReadableDatabase()
-                .query(table, projection, selection, selectionArgs, null, null, sortOrder);
+
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+
+        Cursor cursor = queryBuilder.query(db, projection, selection,
+                selectionArgs, null, null, sortOrder);
+        // make sure that potential listeners are getting notified
         cursor.setNotificationUri(getContext().getContentResolver(), uri);
         return cursor;
     }
 
+
+
     @Override
     public Uri insert(Uri uri, ContentValues values) {
-        String table = parseUri(uri);
-        SQLiteDatabase db = dbHelper.getWritableDatabase();
-        long id = db.insert(table, null, values);
-        if (-1 == id) {
-            throw new RuntimeException("Record wasn't saved.");
+        int uriType = URI_MATCHER.match(uri);
+        SQLiteDatabase sqlDB = dbHelper.getWritableDatabase();
+        long id = 0;
+        switch (uriType) {
+            case CODE_ALL_ARTICLES:
+                id = sqlDB.insert(TABLE_ARTICLES, null, values);
+                break;
+            default:
+                throw new IllegalArgumentException("Unknown URI: " + uri);
         }
-        Uri resultUri = ContentUris.withAppendedId(uri, id);
-        getContext().getContentResolver().notifyChange(resultUri, null);
+        getContext().getContentResolver().notifyChange(uri, null);
+        return Uri.parse(TABLE_ARTICLES + "/" + id);
 
-        return resultUri;
     }
 
     @Override
     public int delete(Uri uri, String selection, String[] selectionArgs) {
-        String table = parseUri(uri);
-        SQLiteDatabase db = dbHelper.getWritableDatabase();
-        int result = db.delete(table, selection, selectionArgs);
+        int uriType = URI_MATCHER.match(uri);
+        SQLiteDatabase sqlDB = dbHelper.getWritableDatabase();
+        int rowsDeleted = 0;
+        switch (uriType) {
+            case CODE_ALL_ARTICLES:
+                rowsDeleted = sqlDB.delete(TABLE_ARTICLES, selection,
+                        selectionArgs);
+                break;
+            case CODE_ONE_ARTICLE:
+                String id = uri.getLastPathSegment();
 
+                rowsDeleted = sqlDB.delete(TABLE_ARTICLES,
+                        COLUMN_ID + "=" + id
+                                + " and " + selection,
+                        selectionArgs);
+                break;
+            default:
+                throw new IllegalArgumentException("Unknown URI: " + uri);
+        }
         getContext().getContentResolver().notifyChange(uri, null);
-        return result;
+        return rowsDeleted;
     }
 
     @Override
     public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
-        String table = parseUri(uri);
-        SQLiteDatabase db = dbHelper.getWritableDatabase();
-        int result = db.update(table, values, selection, selectionArgs);
+        int uriType = URI_MATCHER.match(uri);
+        SQLiteDatabase sqlDB = dbHelper.getWritableDatabase();
+        int rowsDeleted = 0;
+        switch (uriType) {
+            case CODE_ALL_ARTICLES:
+                rowsDeleted = sqlDB.delete(TABLE_ARTICLES, selection,
+                        selectionArgs);
+                break;
+            case CODE_ONE_ARTICLE:
+                String id = uri.getLastPathSegment();
 
+                rowsDeleted = sqlDB.delete(TABLE_ARTICLES,
+                        COLUMN_ID + "=" + id
+                                + " and " + selection,
+                        selectionArgs);
+
+                break;
+            default:
+                throw new IllegalArgumentException("Unknown URI: " + uri);
+        }
         getContext().getContentResolver().notifyChange(uri, null);
-        return result;
+        return rowsDeleted;
     }
 
     @Override
     public String getType(Uri uri) {
         return null;
     }
-
-    private String parseUri(Uri uri) {
-        return parseUri(URI_MATCHER.match(uri));
-    }
-
-    private String parseUri(int match) {
-        String table = null;
-        switch (match) {
-            case CODE_ARTICLES:
-                table = TABLE_ARTICLES;
-                break;
-            default:
-                throw new IllegalArgumentException("Invalid code: " + match);
-        }
-        return table;
-    }
-
-    /*
-    custom sql queries
-     */
-
-    private Cursor getGroups(){
-        SQLiteDatabase db = dbHelper.getReadableDatabase();
-        String sql = "select ...";
-        return db.rawQuery(sql, null);
-    }
-
 }

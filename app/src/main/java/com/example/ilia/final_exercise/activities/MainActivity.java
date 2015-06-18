@@ -1,6 +1,7 @@
 package com.example.ilia.final_exercise.activities;
 
 import android.content.pm.ActivityInfo;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 
@@ -8,6 +9,8 @@ import com.example.ilia.final_exercise.R;
 import com.example.ilia.final_exercise.interfaces.IClickListener;
 import com.example.ilia.final_exercise.interfaces.IStateItemChange;
 import com.example.ilia.final_exercise.database.ArticleItem;
+
+import java.net.URI;
 
 
 public class MainActivity extends BaseActivity {
@@ -30,9 +33,9 @@ public class MainActivity extends BaseActivity {
     }
 
     @Override
-    public void getArticleToAnotherFragment(ArticleItem articleItem) {
+    public void getArticleToAnotherFragment(Uri uri) {
         IClickListener iClickListener=(IClickListener)fragmentArticle;
-        iClickListener.getArticleToAnotherFragment(articleItem);
+        iClickListener.getArticleToAnotherFragment(uri);
     }
 
     @Override

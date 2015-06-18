@@ -1,5 +1,6 @@
 package com.example.ilia.final_exercise.activities;
 
+import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
 
 import com.example.ilia.final_exercise.interfaces.IClickListener;
@@ -11,7 +12,7 @@ import com.example.ilia.final_exercise.database.ArticleItem;
  */
 public class BaseActivity extends AppCompatActivity implements IClickListener,IStateItemChange {
     @Override
-    public void getArticleToAnotherFragment(ArticleItem articleItem) {
+    public void getArticleToAnotherFragment(Uri articleItem) {
 
     }
 

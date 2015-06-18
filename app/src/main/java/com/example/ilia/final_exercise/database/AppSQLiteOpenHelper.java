@@ -7,7 +7,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 public class AppSQLiteOpenHelper extends SQLiteOpenHelper {
 
     private static final String DB_NAME = "app.db";
-    private static final int DB_VERSION = 1;
+    private static final int DB_VERSION = 5;
 
     public static final String COLUMN_ID = "_id";
 
@@ -23,23 +23,23 @@ public class AppSQLiteOpenHelper extends SQLiteOpenHelper {
     public static final String ARTICLES_COLUMN_OWN = "own";
     public static final String ARTICLES_COLUMN_PHOTO = "photo";
 
-    private static final String CREATE_TABLE_USERS = "" +
+    private static final String CREATE_TABLE_ARTICLES = "" +
             "CREATE TABLE " + TABLE_ARTICLES + "(" +
             COLUMN_ID + " integer primary key autoincrement," +
             COLUMN_TITLE   + " text," +
-            ARTICLES_COLUMN_DESCRIPTION  + " text" +
-            ARTICLES_COLUMN_PUBLISHED  + " integer" +
-            ARTICLES_COLUMN_CATEGORY_ID  + " integer" +
-            ARTICLES_COLUMN_CREATE_AT  + " text" +
-            ARTICLES_COLUMN_UPDATE_AT  + " text" +
-            ARTICLES_COLUMN_OWN  + " integer" +
+            ARTICLES_COLUMN_DESCRIPTION  + " text," +
+            ARTICLES_COLUMN_PUBLISHED  + " integer," +
+            ARTICLES_COLUMN_CATEGORY_ID  + " integer," +
+            ARTICLES_COLUMN_CREATE_AT  + " text," +
+            ARTICLES_COLUMN_UPDATE_AT  + " text," +
+            ARTICLES_COLUMN_OWN  + " integer," +
             ARTICLES_COLUMN_PHOTO  + " text" +
             ");";
 
     private static final String CREATE_TABLE_CATEGORIES = "" +
             "CREATE TABLE " + TABLE_CATEGORIES + "(" +
             COLUMN_ID + " integer primary key autoincrement," +
-            COLUMN_TITLE   + " text," +
+            COLUMN_TITLE   + " text" +
             ");";
 
     public AppSQLiteOpenHelper(Context context) {
@@ -49,7 +49,7 @@ public class AppSQLiteOpenHelper extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase db) {
         String[] CREATES = {
-                CREATE_TABLE_USERS,
+                CREATE_TABLE_ARTICLES,
                 //CREATE_TABLE_CATEGORIES
         };
         for (final String table : CREATES) {
@@ -66,5 +66,6 @@ public class AppSQLiteOpenHelper extends SQLiteOpenHelper {
         for (final String table : TABLES) {
             db.execSQL("DROP TABLE IF EXISTS " + table);
         }
+        onCreate(db);
     }
 }
