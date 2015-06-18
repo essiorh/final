@@ -7,7 +7,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 public class AppSQLiteOpenHelper extends SQLiteOpenHelper {
 
     private static final String DB_NAME = "app.db";
-    private static final int DB_VERSION = 5;
+    private static final int DB_VERSION = 6;
 
     public static final String COLUMN_ID = "_id";
 
@@ -25,7 +25,7 @@ public class AppSQLiteOpenHelper extends SQLiteOpenHelper {
 
     private static final String CREATE_TABLE_ARTICLES = "" +
             "CREATE TABLE " + TABLE_ARTICLES + "(" +
-            COLUMN_ID + " integer primary key autoincrement," +
+            COLUMN_ID + " integer primary key," +
             COLUMN_TITLE   + " text," +
             ARTICLES_COLUMN_DESCRIPTION  + " text," +
             ARTICLES_COLUMN_PUBLISHED  + " integer," +
@@ -38,7 +38,7 @@ public class AppSQLiteOpenHelper extends SQLiteOpenHelper {
 
     private static final String CREATE_TABLE_CATEGORIES = "" +
             "CREATE TABLE " + TABLE_CATEGORIES + "(" +
-            COLUMN_ID + " integer primary key autoincrement," +
+            COLUMN_ID + " integer primary key," +
             COLUMN_TITLE   + " text" +
             ");";
 
@@ -50,7 +50,7 @@ public class AppSQLiteOpenHelper extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase db) {
         String[] CREATES = {
                 CREATE_TABLE_ARTICLES,
-                //CREATE_TABLE_CATEGORIES
+                CREATE_TABLE_CATEGORIES
         };
         for (final String table : CREATES) {
             db.execSQL(table);
@@ -61,7 +61,7 @@ public class AppSQLiteOpenHelper extends SQLiteOpenHelper {
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         String[] TABLES = {
                 TABLE_ARTICLES,
-                //TABLE_CATEGORIES
+                TABLE_CATEGORIES
         };
         for (final String table : TABLES) {
             db.execSQL("DROP TABLE IF EXISTS " + table);

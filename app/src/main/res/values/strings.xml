@@ -10,6 +10,7 @@
     <string name="edit">Edit</string>
     <string name="published">Published ?</string>
     <string name="save">Save</string>
+    <string name="add_new_article">add new article</string>
 
 
     <string-array name="spinner_values">

@@ -15,6 +15,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.Button;
 import android.widget.ExpandableListView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
@@ -23,9 +24,11 @@ import android.widget.Spinner;
 import android.widget.TextView;
 
 import com.android.volley.AuthFailureError;
+import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.VolleyLog;
+import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.example.ilia.final_exercise.AppController;
 import com.example.ilia.final_exercise.R;
@@ -55,7 +58,7 @@ import static com.example.ilia.final_exercise.database.AppSQLiteOpenHelper.*;
  */
 public class ListFragment extends Fragment implements Spinner.OnItemSelectedListener,
         ExpandableListView.OnChildClickListener, ListView.OnItemClickListener,
-        IStateItemChange, LoaderManager.LoaderCallbacks<Cursor> {
+        IStateItemChange, LoaderManager.LoaderCallbacks<Cursor>, Button.OnClickListener {
     private ExpandableListView expandableListView;
     private ListView customListView;
     private Spinner mSpinner;
@@ -67,13 +70,12 @@ public class ListFragment extends Fragment implements Spinner.OnItemSelectedList
     private SimpleCursorAdapter cursorAdapter;
 
     // json array response url
-    private String urlJsonArry = "http://api.androidhive.info/volley/person_array.json";
     // temporary string to show the parsed response
     private String jsonResponse;
 
     private static String TAG = MainActivity.class.getSimpleName();
 
-    private final static String urlJsonArray = "http://editors.yozhik.sibext.ru/articles.json";
+    private final static String urlJsonArray = "http://editors.yozhik.sibext.ru/";
     private final static String apiKey="bdf6064c9b5a4011ee2f36b082bb4e5d";
 
     public ListFragment() {
@@ -85,6 +87,7 @@ public class ListFragment extends Fragment implements Spinner.OnItemSelectedList
         expandableListView = (ExpandableListView) inflateView.findViewById(R.id.exp_list);
         mSpinner = (Spinner) inflateView.findViewById(R.id.list_spinner);
         customListView = (ListView) inflateView.findViewById(R.id.def_list);
+        Button addNewArticleButton= (Button) inflateView.findViewById(R.id.add_new_article);
 
         /*mTextView = (TextView) inflateView.findViewById(R.id.filter);
         mTextView.addTextChangedListener(new TextWatcher() {
@@ -120,7 +123,7 @@ public class ListFragment extends Fragment implements Spinner.OnItemSelectedList
         mSpinner.setOnItemSelectedListener(this);
         customListView.setOnItemClickListener(this);
 
-        //registerForContextMenu(customListView);
+        registerForContextMenu(customListView);
         //registerForContextMenu(expandableListView);
         return inflateView;
     }
@@ -154,11 +157,10 @@ public class ListFragment extends Fragment implements Spinner.OnItemSelectedList
     }
 
     private void request() {
-        getActivity().getContentResolver().delete(CONTENT_URI_ARTICLES,null,null);
-        StringRequest req = new StringRequest(urlJsonArray, new Response.Listener<String>() {
+        getActivity().getContentResolver().delete(CONTENT_URI_ARTICLES, null, null);
+        StringRequest req = new StringRequest(urlJsonArray+"articles.json", new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
-                jsonResponse = "";
                 try {
                     JSONObject jsonObject=new JSONObject(response);
                     JSONArray jsonArrays= jsonObject.getJSONArray("articles");
@@ -169,17 +171,13 @@ public class ListFragment extends Fragment implements Spinner.OnItemSelectedList
                         int id = articles.getInt("id");
                         String title = articles.getString("title");
                         String description = articles.getString("description");
-                                    /*JSONObject phone = categories
-                                            .getJSONObject("phone");
-                                    String home = phone.getString("home");
-                                    String mobile = phone.getString("mobile");*/
+                        int category_id=articles.getInt("category_id");
 
-                        jsonResponse += "id: " + id + "\n\n";
-                        jsonResponse += "title: " + title + "\n\n";
                         ContentValues values = new ContentValues();
-                        values.put(COLUMN_TITLE, 		title);
-                        values.put(ARTICLES_COLUMN_DESCRIPTION, 	description);
-                        values.put(ARTICLES_COLUMN_CATEGORY_ID, 	0);
+                        values.put(COLUMN_ID, id);
+                        values.put(COLUMN_TITLE, title);
+                        values.put(ARTICLES_COLUMN_DESCRIPTION, description);
+                        values.put(ARTICLES_COLUMN_CATEGORY_ID, category_id);
 
                         getActivity().getContentResolver().insert(CONTENT_URI_ARTICLES, values);
                     }
@@ -207,22 +205,7 @@ public class ListFragment extends Fragment implements Spinner.OnItemSelectedList
             }
         };
 
-
         AppController.getInstance().addToRequestQueue(req);
-        /*groupItemList = new ArrayList<>();
-        groupItemList.add(new GroupItem(0, "Hello 1"));
-        groupItemList.add(new GroupItem(1, "Hello 1"));
-        groupItemList.add(new GroupItem(2, "Hello 1"));
-
-        articleItemList = new ArrayList<>();
-        articleItemList.add(new ArticleItem(0, "Hello 00", "superdiscription", true, 0, "2015", "2015", false, null));
-        articleItemList.add(new ArticleItem(1, "Hello 01", "superdiscription", true, 0, "2015", "2015", false, null));
-        articleItemList.add(new ArticleItem(2, "Hello 10", "superdiscription", true, 1, "2015", "2015", false, null));
-        articleItemList.add(new ArticleItem(3, "Hello 11", "superdiscription", true, 1, "2015", "2015", false, null));
-        articleItemList.add(new ArticleItem(4, "Hello 20", "superdiscription", true, 2, "2015", "2015", false, null));
-        articleItemList.add(new ArticleItem(5, "Hello 21", "superdiscription", true, 2, "2015", "2015", false, null));
-    */
-
     }
 
     @Override
@@ -242,21 +225,7 @@ public class ListFragment extends Fragment implements Spinner.OnItemSelectedList
 
     @Override
     public void updateArticleItem(ArticleItem articleItem) {
-        /*for(int i=0;i<articleItemList.size();i++) {
-            if (customAdapter.getItem(i).get_id()==articleItem.get_id()) {
-                articleItemList.get(i).setmCategory_id(articleItem.getmCategory_id());
-                articleItemList.get(i).setmPublished(articleItem.ismPublished());
-                articleItemList.get(i).setmCreate_at(articleItem.getmCreate_at());
-                articleItemList.get(i).setmDescription(articleItem.getmDescription());
-                articleItemList.get(i).setmOwn(articleItem.getmOwn());
-                articleItemList.get(i).setmPhoto(articleItem.getmPhoto());
-                articleItemList.get(i).setmTitle(articleItem.getmTitle());
-                articleItemList.get(i).setmUpdate_at(articleItem.getmUpdate_at());
-                customAdapter.setArticleItemList(articleItemList);
-                customAdapter.notifyDataSetChanged();
 
-            }
-        }*/
     }
 
     @Override
@@ -289,26 +258,32 @@ public class ListFragment extends Fragment implements Spinner.OnItemSelectedList
         AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item
                         .getMenuInfo();
                 Uri uri = Uri.parse(CONTENT_URI_ARTICLES + "/" + info.id);
-        String[] projection = { COLUMN_TITLE,
-                ARTICLES_COLUMN_DESCRIPTION };
-        Cursor cursor = getActivity().getContentResolver().query(uri, projection, null, null,
-                null);
+        JsonObjectRequest jsonObjectRequest=new JsonObjectRequest(Request.Method.DELETE,
+                urlJsonArray+"articles/"+info.id+".json",null, new Response.Listener<JSONObject>(
 
-        if (cursor != null) {
-            cursor.moveToFirst();
+        ) {
+            @Override
+            public void onResponse(JSONObject response) {
+                VolleyLog.v("Response:%n %s", response);
+                request();
+            }
+        },new Response.ErrorListener(){
 
-            String title=cursor.getString(cursor
-                    .getColumnIndexOrThrow(COLUMN_TITLE));
-            int id=cursor.getInt(cursor
-                    .getColumnIndexOrThrow(COLUMN_ID));
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                VolleyLog.e("Error: ", error.getMessage());
 
-            // always close the cursor
-            cursor.close();
-        }
-
-
-                getActivity().getContentResolver().delete(uri, null, null);
-
+            }
+        }){
+            @Override
+            public Map<String, String> getHeaders() throws AuthFailureError {
+                Map<String,String> params = new HashMap<String, String>();
+                params.put("Content-Type","application/json");
+                params.put("Authorization","Token token="+ apiKey);
+                return params;
+            }
+        };
+        AppController.getInstance().addToRequestQueue(jsonObjectRequest);
         return true;
     }
 
@@ -320,6 +295,15 @@ public class ListFragment extends Fragment implements Spinner.OnItemSelectedList
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
         cursorAdapter.swapCursor(null);
+    }
+
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.add_new_article:
+
+                break;
+        }
     }
 }
 /*

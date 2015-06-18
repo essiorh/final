@@ -5,41 +5,31 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.util.Log;
-import android.view.ContextMenu;
 import android.view.LayoutInflater;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
-import android.widget.SpinnerAdapter;
 import android.widget.Switch;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.android.volley.AuthFailureError;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.VolleyLog;
-import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.example.ilia.final_exercise.AppController;
 import com.example.ilia.final_exercise.R;
 import com.example.ilia.final_exercise.activities.MainActivity;
-import com.example.ilia.final_exercise.database.AppContentProvider;
 import com.example.ilia.final_exercise.database.ArticleItem;
 import com.example.ilia.final_exercise.database.GroupItem;
 import com.example.ilia.final_exercise.interfaces.IClickListener;
 
-import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
@@ -48,9 +38,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -60,13 +48,13 @@ import static com.example.ilia.final_exercise.database.AppSQLiteOpenHelper.ARTIC
 import static com.example.ilia.final_exercise.database.AppSQLiteOpenHelper.ARTICLES_COLUMN_DESCRIPTION;
 import static com.example.ilia.final_exercise.database.AppSQLiteOpenHelper.ARTICLES_COLUMN_PUBLISHED;
 import static com.example.ilia.final_exercise.database.AppSQLiteOpenHelper.ARTICLES_COLUMN_UPDATE_AT;
+import static com.example.ilia.final_exercise.database.AppSQLiteOpenHelper.COLUMN_ID;
 import static com.example.ilia.final_exercise.database.AppSQLiteOpenHelper.COLUMN_TITLE;
 
 /**
  * Created by ilia on 16.06.15.
  */
 public class ArticleFragment extends Fragment implements IClickListener, View.OnClickListener,
-                                                        Switch.OnCheckedChangeListener,
                                                         Spinner.OnItemClickListener {
     private TextView textTitle;
     private TextView textDescription;
@@ -76,13 +64,13 @@ public class ArticleFragment extends Fragment implements IClickListener, View.On
     private Button buttonView;
     private Button buttonEdit;
     private Button buttonSave;
-    private ArticleItem mArticleItem;
     private Uri todoUri;
     private final static String urlJsonArray = "http://editors.yozhik.sibext.ru/categories.json";
     private final static String urlJsonArrayInsert = "http://editors.yozhik.sibext.ru/articles.json";
     private final static String apiKey="bdf6064c9b5a4011ee2f36b082bb4e5d";
     private String jsonResponse;
     private List<GroupItem> listCategoty_id;
+    private JSONObject mArticleView;
 
     private static String TAG = MainActivity.class.getSimpleName();
 
@@ -104,7 +92,6 @@ public class ArticleFragment extends Fragment implements IClickListener, View.On
         buttonEdit = (Button) inflateView.findViewById(R.id.button_edit);
         buttonSave = (Button) inflateView.findViewById(R.id.button_save);
 
-        switchPublished.setOnCheckedChangeListener(this);
         buttonView.setOnClickListener(this);
         buttonEdit.setOnClickListener(this);
         buttonSave.setOnClickListener(this);
@@ -121,53 +108,48 @@ public class ArticleFragment extends Fragment implements IClickListener, View.On
         String message;
 
         HttpPost p = new HttpPost(urlJsonArrayInsert);
-        JSONObject object = new JSONObject();
+        mArticleView = new JSONObject();
         try {
 
-            object.put("title", textTitle.getText().toString());
-            object.put("description", textDescription.getText().toString());
-            object.put("published",true);
-            object.put("category_id",1);
+            mArticleView.put("title", textTitle.getText().toString());
+            mArticleView.put("description", textDescription.getText().toString());
+            mArticleView.put("published", true);
+            mArticleView.put("category_id", spinnerCategory.getSelectedItemId());
 
         } catch (Exception ex) {
 
         }
 
-        JsonObjectRequest req = new JsonObjectRequest(urlJsonArrayInsert, object,
+        JsonObjectRequest req = new JsonObjectRequest(urlJsonArrayInsert, mArticleView,
                 new Response.Listener<JSONObject>() {
                     @Override
                     public void onResponse(JSONObject response) {
-                        int id=0;
-                        String title ="";
-                        String description ="";
+                        int id = 0;
+                        String title = "";
+                        String description = "";
+                        int category_id = 0;
                         try {
-                            JSONArray jsonArray = response.getJSONArray("articles");
-                            for (int i=0;i<jsonArray.length();i++) {
+                            JSONArray jsonArray = response.getJSONArray("article");
+                            for (int i = 0; i < jsonArray.length(); i++) {
                                 JSONObject jsonObject = jsonArray.getJSONObject(i);
                                 id = jsonObject.getInt("id");
                                 title = jsonObject.getString("title");
-                                title = jsonObject.getString("description");
+                                description = jsonObject.getString("description");
+                                category_id = jsonObject.getInt("category_id");
                             }
-
-
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
                         jsonResponse = "";
                         ContentValues values = new ContentValues();
-                        values.put(COLUMN_TITLE, 		title);
-                        values.put(ARTICLES_COLUMN_DESCRIPTION, 	description);
-                        values.put(ARTICLES_COLUMN_CATEGORY_ID, 	0);
-                        values.put(ARTICLES_COLUMN_CREATE_AT, 		"");
+                        values.put(COLUMN_ID, id);
+                        values.put(COLUMN_TITLE, title);
+                        values.put(ARTICLES_COLUMN_DESCRIPTION, description);
+                        values.put(ARTICLES_COLUMN_CATEGORY_ID, category_id);
+                        values.put(ARTICLES_COLUMN_CREATE_AT, "");
                         values.put(ARTICLES_COLUMN_UPDATE_AT, "");
                         values.put(ARTICLES_COLUMN_PUBLISHED, true);
                         getActivity().getContentResolver().insert(CONTENT_URI_ARTICLES, values);
-
-                                    /*JSONObject phone = person
-                                            .getJSONObject("phone");
-                                    String home = phone.getString("home");
-                                    String mobile = phone.getString("mobile");*/
-
                     }
                 }, new Response.ErrorListener() {
             @Override
@@ -184,7 +166,6 @@ public class ArticleFragment extends Fragment implements IClickListener, View.On
             }
         };
         AppController.getInstance().addToRequestQueue(req);
-
     }
 
     @Override
@@ -236,21 +217,12 @@ public class ArticleFragment extends Fragment implements IClickListener, View.On
                     mArticleItem.setmTitle(textTitle.getText().toString());
                     IStateItemChange iStateItemChange=(IStateItemChange)getActivity();
                     iStateItemChange.updateArticleItem(mArticleItem);*/
-                request();
-                String title = textTitle.getText().toString();
-                String description = textDescription.getText().toString();
-                long updated = (new Date()).getTime();
+                if (mArticleView==null)
+                {
+                    request();
+                } else {
 
-                boolean isPublished = switchPublished.isChecked();
-
-                ContentValues values = new ContentValues();
-                values.put(COLUMN_TITLE, title);
-                values.put(ARTICLES_COLUMN_DESCRIPTION, description);
-                values.put(ARTICLES_COLUMN_CATEGORY_ID, 0);
-                values.put(ARTICLES_COLUMN_CREATE_AT, updated);
-                values.put(ARTICLES_COLUMN_UPDATE_AT, updated);
-                values.put(ARTICLES_COLUMN_PUBLISHED, isPublished);
-                getActivity().getContentResolver().insert(CONTENT_URI_ARTICLES, values);
+                }
 
                     /*if (mArticleUri == null) {
                         mArticleUri = AppController.getAppContext().getContentResolver()
@@ -313,21 +285,9 @@ public class ArticleFragment extends Fragment implements IClickListener, View.On
                 return params;
             }
         };
-
-
         AppController.getInstance().addToRequestQueue(req);
     }
 
-    @Override
-    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-        switch (buttonView.getId()) {
-            case R.id.switch1:
-                if (mArticleItem!=null) {
-                    mArticleItem.setmPublished(isChecked);
-                }
-                break;
-        }
-    }
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
