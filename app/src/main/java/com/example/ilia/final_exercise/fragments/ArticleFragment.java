@@ -29,6 +29,7 @@ import com.example.ilia.final_exercise.activities.MainActivity;
 import com.example.ilia.final_exercise.database.ArticleItem;
 import com.example.ilia.final_exercise.database.GroupItem;
 import com.example.ilia.final_exercise.interfaces.IClickListener;
+import com.example.ilia.final_exercise.interfaces.IStateItemChange;
 
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
@@ -46,6 +47,7 @@ import static com.example.ilia.final_exercise.database.AppContentProvider.CONTEN
 import static com.example.ilia.final_exercise.database.AppSQLiteOpenHelper.ARTICLES_COLUMN_CATEGORY_ID;
 import static com.example.ilia.final_exercise.database.AppSQLiteOpenHelper.ARTICLES_COLUMN_CREATE_AT;
 import static com.example.ilia.final_exercise.database.AppSQLiteOpenHelper.ARTICLES_COLUMN_DESCRIPTION;
+import static com.example.ilia.final_exercise.database.AppSQLiteOpenHelper.ARTICLES_COLUMN_OWN;
 import static com.example.ilia.final_exercise.database.AppSQLiteOpenHelper.ARTICLES_COLUMN_PUBLISHED;
 import static com.example.ilia.final_exercise.database.AppSQLiteOpenHelper.ARTICLES_COLUMN_UPDATE_AT;
 import static com.example.ilia.final_exercise.database.AppSQLiteOpenHelper.COLUMN_ID;
@@ -55,7 +57,7 @@ import static com.example.ilia.final_exercise.database.AppSQLiteOpenHelper.COLUM
  * Created by ilia on 16.06.15.
  */
 public class ArticleFragment extends Fragment implements IClickListener, View.OnClickListener,
-                                                        Spinner.OnItemClickListener {
+                                                        Spinner.OnItemClickListener, IStateItemChange {
     private TextView textTitle;
     private TextView textDescription;
     private Spinner spinnerCategory;
@@ -104,21 +106,7 @@ public class ArticleFragment extends Fragment implements IClickListener, View.On
     }
 
     private void request() {
-        HttpClient hc = new DefaultHttpClient();
-        String message;
 
-        HttpPost p = new HttpPost(urlJsonArrayInsert);
-        mArticleView = new JSONObject();
-        try {
-
-            mArticleView.put("title", textTitle.getText().toString());
-            mArticleView.put("description", textDescription.getText().toString());
-            mArticleView.put("published", true);
-            mArticleView.put("category_id", spinnerCategory.getSelectedItemId());
-
-        } catch (Exception ex) {
-
-        }
 
         JsonObjectRequest req = new JsonObjectRequest(urlJsonArrayInsert, mArticleView,
                 new Response.Listener<JSONObject>() {
@@ -129,18 +117,18 @@ public class ArticleFragment extends Fragment implements IClickListener, View.On
                         String description = "";
                         int category_id = 0;
                         try {
-                            JSONArray jsonArray = response.getJSONArray("article");
-                            for (int i = 0; i < jsonArray.length(); i++) {
-                                JSONObject jsonObject = jsonArray.getJSONObject(i);
+                            //JSONArray jsonArray = response.getJSONArray("article");
+                            //for (int i = 0; i < jsonArray.length(); i++) {
+                                JSONObject jsonObject = response.getJSONObject("article");
                                 id = jsonObject.getInt("id");
                                 title = jsonObject.getString("title");
                                 description = jsonObject.getString("description");
                                 category_id = jsonObject.getInt("category_id");
-                            }
+                            //}
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
-                        jsonResponse = "";
+
                         ContentValues values = new ContentValues();
                         values.put(COLUMN_ID, id);
                         values.put(COLUMN_TITLE, title);
@@ -170,7 +158,21 @@ public class ArticleFragment extends Fragment implements IClickListener, View.On
 
     @Override
     public void getArticleToAnotherFragment(Uri uri) {
+        HttpClient hc = new DefaultHttpClient();
+        String message;
 
+        HttpPost p = new HttpPost(urlJsonArrayInsert);
+        mArticleView = new JSONObject();
+        try {
+
+            mArticleView.put("title", textTitle.getText().toString());
+            mArticleView.put("description", textDescription.getText().toString());
+            mArticleView.put("published", true);
+            mArticleView.put("category_id", spinnerCategory.getSelectedItemId());
+
+        } catch (Exception ex) {
+
+        }
         todoUri=uri;
         fillData(todoUri);
 
@@ -178,7 +180,8 @@ public class ArticleFragment extends Fragment implements IClickListener, View.On
 
     private void fillData(Uri uri) {
         String[] projection = { COLUMN_TITLE,
-                ARTICLES_COLUMN_DESCRIPTION };
+                ARTICLES_COLUMN_DESCRIPTION,
+                ARTICLES_COLUMN_OWN};
         Cursor cursor = getActivity().getContentResolver().query(uri, projection, null, null,
                 null);
         if (cursor != null) {
@@ -188,6 +191,9 @@ public class ArticleFragment extends Fragment implements IClickListener, View.On
                     .getColumnIndexOrThrow(COLUMN_TITLE)));
             textDescription.setText(cursor.getString(cursor
                     .getColumnIndexOrThrow(ARTICLES_COLUMN_DESCRIPTION)));
+            int publ=cursor.getInt(cursor
+                    .getColumnIndexOrThrow(ARTICLES_COLUMN_OWN));
+            switchPublished.setChecked(publ>0);
 
             // always close the cursor
             cursor.close();
@@ -299,4 +305,18 @@ public class ArticleFragment extends Fragment implements IClickListener, View.On
     }
 
 
+    @Override
+    public void deleteArticleItem(ArticleItem articleItem) {
+
+    }
+
+    @Override
+    public void updateArticleItem(ArticleItem articleItem) {
+
+    }
+
+    @Override
+    public void addArticleItem(Uri articleItem) {
+
+    }
 }

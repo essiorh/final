@@ -8,6 +8,8 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.MenuInflater;
@@ -16,7 +18,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ExpandableListView;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
@@ -68,6 +72,7 @@ public class ListFragment extends Fragment implements Spinner.OnItemSelectedList
     private List<GroupItem> groupItemList = new ArrayList<>();
     private List<ArticleItem> articleItemList = new ArrayList<>();
     private SimpleCursorAdapter cursorAdapter;
+    private EditText mEitTextFilter;
 
     // json array response url
     // temporary string to show the parsed response
@@ -87,6 +92,19 @@ public class ListFragment extends Fragment implements Spinner.OnItemSelectedList
         expandableListView = (ExpandableListView) inflateView.findViewById(R.id.exp_list);
         mSpinner = (Spinner) inflateView.findViewById(R.id.list_spinner);
         customListView = (ListView) inflateView.findViewById(R.id.def_list);
+        mEitTextFilter = (EditText) inflateView.findViewById(R.id.filter);
+        mEitTextFilter.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                //expandableAdapter.getFilter().filter(s);
+            }
+
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
+
+            @Override public void afterTextChanged(Editable s) { }
+        });
+        ImageButton imageButtonRefresh= (ImageButton) inflateView.findViewById(R.id.refresh);
+        imageButtonRefresh.setOnClickListener(this);
         Button addNewArticleButton= (Button) inflateView.findViewById(R.id.add_new_article);
 
         /*mTextView = (TextView) inflateView.findViewById(R.id.filter);
@@ -172,12 +190,14 @@ public class ListFragment extends Fragment implements Spinner.OnItemSelectedList
                         String title = articles.getString("title");
                         String description = articles.getString("description");
                         int category_id=articles.getInt("category_id");
+                        boolean own=articles.getBoolean("own");
 
                         ContentValues values = new ContentValues();
                         values.put(COLUMN_ID, id);
                         values.put(COLUMN_TITLE, title);
                         values.put(ARTICLES_COLUMN_DESCRIPTION, description);
                         values.put(ARTICLES_COLUMN_CATEGORY_ID, category_id);
+                        values.put(ARTICLES_COLUMN_OWN, own ? 1:0);
 
                         getActivity().getContentResolver().insert(CONTENT_URI_ARTICLES, values);
                     }
@@ -229,9 +249,10 @@ public class ListFragment extends Fragment implements Spinner.OnItemSelectedList
     }
 
     @Override
-    public void addArticleItem(ArticleItem articleItem) {
+    public void addArticleItem(Uri articleItem) {
 
     }
+
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
@@ -302,6 +323,10 @@ public class ListFragment extends Fragment implements Spinner.OnItemSelectedList
         switch (v.getId()) {
             case R.id.add_new_article:
 
+                break;
+            case R.id.refresh:
+                mEitTextFilter.setText("");
+                request();
                 break;
         }
     }

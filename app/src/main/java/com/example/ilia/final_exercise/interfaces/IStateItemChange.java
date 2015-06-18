@@ -1,5 +1,7 @@
 package com.example.ilia.final_exercise.interfaces;
 
+import android.net.Uri;
+
 import com.example.ilia.final_exercise.database.ArticleItem;
 
 /**
@@ -8,5 +10,5 @@ import com.example.ilia.final_exercise.database.ArticleItem;
 public interface IStateItemChange {
     void deleteArticleItem(ArticleItem articleItem);
     void updateArticleItem(ArticleItem articleItem);
-    void addArticleItem(ArticleItem articleItem);
+    void addArticleItem(Uri articleItem);
 }

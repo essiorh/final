@@ -27,7 +27,7 @@ public class BaseActivity extends AppCompatActivity implements IClickListener,IS
     }
 
     @Override
-    public void addArticleItem(ArticleItem articleItem) {
+    public void addArticleItem(Uri articleItem) {
 
     }
 }

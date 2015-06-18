@@ -50,7 +50,7 @@ public class MainActivity extends BaseActivity {
     }
 
     @Override
-    public void addArticleItem(ArticleItem articleItem) {
+    public void addArticleItem(Uri articleItem) {
     }
 
 
