@@ -6,15 +6,20 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.util.Log;
+import android.view.ContextMenu;
 import android.view.LayoutInflater;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
+import android.widget.SpinnerAdapter;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -29,7 +34,9 @@ import com.android.volley.toolbox.StringRequest;
 import com.example.ilia.final_exercise.AppController;
 import com.example.ilia.final_exercise.R;
 import com.example.ilia.final_exercise.activities.MainActivity;
+import com.example.ilia.final_exercise.database.AppContentProvider;
 import com.example.ilia.final_exercise.database.ArticleItem;
+import com.example.ilia.final_exercise.database.GroupItem;
 import com.example.ilia.final_exercise.interfaces.IClickListener;
 
 import org.apache.http.HttpResponse;
@@ -44,6 +51,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import static com.example.ilia.final_exercise.database.AppContentProvider.CONTENT_URI_ARTICLES;
@@ -74,6 +82,8 @@ public class ArticleFragment extends Fragment implements IClickListener, View.On
     private final static String urlJsonArrayInsert = "http://editors.yozhik.sibext.ru/articles.json";
     private final static String apiKey="bdf6064c9b5a4011ee2f36b082bb4e5d";
     private String jsonResponse;
+    private List<GroupItem> listCategoty_id;
+
     private static String TAG = MainActivity.class.getSimpleName();
 
 
@@ -98,14 +108,15 @@ public class ArticleFragment extends Fragment implements IClickListener, View.On
         buttonView.setOnClickListener(this);
         buttonEdit.setOnClickListener(this);
         buttonSave.setOnClickListener(this);
-
-
+        if (listCategoty_id==null){
+            listCategoty_id=new ArrayList<>();
+            getCategory_ids();
+        }
 
         return inflateView;
     }
 
-    private boolean request() {
-        boolean result = false;
+    private void request() {
         HttpClient hc = new DefaultHttpClient();
         String message;
 
@@ -118,52 +129,44 @@ public class ArticleFragment extends Fragment implements IClickListener, View.On
             object.put("published",true);
             object.put("category_id",1);
 
-
         } catch (Exception ex) {
 
         }
-
-        /*try {
-            message = object.toString();
-
-            p.setHeader("Content-Type", "application/json");
-            p.setHeader("Authorization", "Token token=" + apiKey);
-            HttpResponse resp = hc.execute(p);
-            if (resp != null) {
-                if (resp.getStatusLine().getStatusCode() == 200)
-                    result = true;
-            }
-
-            Log.d("Status line", "" + resp.getStatusLine().getStatusCode());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }*/
 
         JsonObjectRequest req = new JsonObjectRequest(urlJsonArrayInsert, object,
                 new Response.Listener<JSONObject>() {
                     @Override
                     public void onResponse(JSONObject response) {
-
-
-                        jsonResponse = "";
-
-
-                        int id = 0;
-                        String title = "";
+                        int id=0;
+                        String title ="";
+                        String description ="";
                         try {
-                            id = response.getInt("id");
-                            title = response.getString("title");
-                            jsonResponse += "id: " + id + "\n\n";
-                            jsonResponse += "title: " + title + "\n\n";
+                            JSONArray jsonArray = response.getJSONArray("articles");
+                            for (int i=0;i<jsonArray.length();i++) {
+                                JSONObject jsonObject = jsonArray.getJSONObject(i);
+                                id = jsonObject.getInt("id");
+                                title = jsonObject.getString("title");
+                                title = jsonObject.getString("description");
+                            }
 
-                        } catch (JSONException e1) {
-                            e1.printStackTrace();
+
+                        } catch (JSONException e) {
+                            e.printStackTrace();
                         }
+                        jsonResponse = "";
+                        ContentValues values = new ContentValues();
+                        values.put(COLUMN_TITLE, 		title);
+                        values.put(ARTICLES_COLUMN_DESCRIPTION, 	description);
+                        values.put(ARTICLES_COLUMN_CATEGORY_ID, 	0);
+                        values.put(ARTICLES_COLUMN_CREATE_AT, 		"");
+                        values.put(ARTICLES_COLUMN_UPDATE_AT, "");
+                        values.put(ARTICLES_COLUMN_PUBLISHED, true);
+                        getActivity().getContentResolver().insert(CONTENT_URI_ARTICLES, values);
+
                                     /*JSONObject phone = person
                                             .getJSONObject("phone");
                                     String home = phone.getString("home");
                                     String mobile = phone.getString("mobile");*/
-
 
                     }
                 }, new Response.ErrorListener() {
@@ -182,7 +185,6 @@ public class ArticleFragment extends Fragment implements IClickListener, View.On
         };
         AppController.getInstance().addToRequestQueue(req);
 
-        return result;
     }
 
     @Override
@@ -234,77 +236,21 @@ public class ArticleFragment extends Fragment implements IClickListener, View.On
                     mArticleItem.setmTitle(textTitle.getText().toString());
                     IStateItemChange iStateItemChange=(IStateItemChange)getActivity();
                     iStateItemChange.updateArticleItem(mArticleItem);*/
-                if (request()) {
-                    String title		=  textTitle.getText().toString();
-                    String description	= textDescription.getText().toString();
-                    long updated		= (new Date()).getTime();
-                    //long categoryId		= mCategories.get(mSpinner.getSelectedItemPosition()).getId();
-                    //if (mCreatedDate == 0) mCreatedDate = updated;
-                    boolean isPublished	= switchPublished.isChecked();
-                    // only save if title or description
-                    // is available
+                request();
+                String title = textTitle.getText().toString();
+                String description = textDescription.getText().toString();
+                long updated = (new Date()).getTime();
 
-                    /*if (description.length() == 0 || title.length() == 0) {
-                        return;
-                    }*/
+                boolean isPublished = switchPublished.isChecked();
 
-                    StringRequest req = new StringRequest(urlJsonArray, new Response.Listener<String>() {
-                        @Override
-                        public void onResponse(String response) {
-                            jsonResponse = "";
-                            try {
-                                JSONObject jsonObject=new JSONObject(response);
-                                JSONArray jsonArrays= jsonObject.getJSONArray("categories");
-                                for (int i = 0; i < jsonArrays.length(); i++) {
-
-                                    JSONObject person = (JSONObject) jsonArrays.get(i);
-
-                                    int id = person.getInt("id");
-                                    String title = person.getString("title");
-                                    /*JSONObject phone = person
-                                            .getJSONObject("phone");
-                                    String home = phone.getString("home");
-                                    String mobile = phone.getString("mobile");*/
-
-                                    jsonResponse += "id: " + id + "\n\n";
-                                    jsonResponse += "title: " + title + "\n\n";
-                                }
-                                textDescription.setText(jsonResponse);
-
-                                VolleyLog.v("Response:%n %s", response);
-
-
-                            } catch (JSONException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    }, new Response.ErrorListener() {
-                        @Override
-                        public void onErrorResponse(VolleyError error) {
-                            VolleyLog.e("Error: ", error.getMessage());
-                        }
-                    }){
-                        @Override
-                        public Map<String, String> getHeaders() throws AuthFailureError {
-                            Map<String,String> params = new HashMap<String, String>();
-                            params.put("Content-Type","application/json");
-                            params.put("Authorization","Token token="+ apiKey);
-                            return params;
-                        }
-                    };
-
-
-                    AppController.getInstance().addToRequestQueue(req);
-
-
-                    ContentValues values = new ContentValues();
-                    values.put(COLUMN_TITLE, 		title);
-                    values.put(ARTICLES_COLUMN_DESCRIPTION, 	description);
-                    values.put(ARTICLES_COLUMN_CATEGORY_ID, 	0);
-                    values.put(ARTICLES_COLUMN_CREATE_AT, 		updated);
-                    values.put(ARTICLES_COLUMN_UPDATE_AT, updated);
-                    values.put(ARTICLES_COLUMN_PUBLISHED, isPublished);
-                    getActivity().getContentResolver().insert(CONTENT_URI_ARTICLES, values);
+                ContentValues values = new ContentValues();
+                values.put(COLUMN_TITLE, title);
+                values.put(ARTICLES_COLUMN_DESCRIPTION, description);
+                values.put(ARTICLES_COLUMN_CATEGORY_ID, 0);
+                values.put(ARTICLES_COLUMN_CREATE_AT, updated);
+                values.put(ARTICLES_COLUMN_UPDATE_AT, updated);
+                values.put(ARTICLES_COLUMN_PUBLISHED, isPublished);
+                getActivity().getContentResolver().insert(CONTENT_URI_ARTICLES, values);
 
                     /*if (mArticleUri == null) {
                         mArticleUri = AppController.getAppContext().getContentResolver()
@@ -314,17 +260,62 @@ public class ArticleFragment extends Fragment implements IClickListener, View.On
                                 .update(mArticleUri, values, null, null);
                     }
 */
-                    //}
-                    spinnerCategory.setVisibility(View.INVISIBLE);
-                    buttonSave.setVisibility(View.INVISIBLE);
-                    textTitle.setEnabled(false);
-                    textDescription.setEnabled(false);
-                    spinnerCategory.setEnabled(false);
-                    break;
-                }
+                //}
+                spinnerCategory.setVisibility(View.INVISIBLE);
+                buttonSave.setVisibility(View.INVISIBLE);
+                textTitle.setEnabled(false);
+                textDescription.setEnabled(false);
+                spinnerCategory.setEnabled(false);
+                break;
 
 
         }
+    }
+
+    private void getCategory_ids() {
+        StringRequest req = new StringRequest(urlJsonArray, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                try {
+                    JSONObject jsonObject = new JSONObject(response);
+                    JSONArray jsonArrays = jsonObject.getJSONArray("categories");
+                    for (int i = 0; i < jsonArrays.length(); i++) {
+
+                        JSONObject category = (JSONObject) jsonArrays.get(i);
+
+                        int id = category.getInt("id");
+                        String title = category.getString("title");
+                        GroupItem groupItem = new GroupItem(id,title);
+                        listCategoty_id.add(groupItem);
+                    }
+                    String[] strings=new String[listCategoty_id.size()];
+                    for (int i=0;i<listCategoty_id.size();i++) {
+                        strings[i]=listCategoty_id.get(i).getmTitle();
+                    }
+                    ArrayAdapter<String> adapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_spinner_item
+                            , strings);
+                    spinnerCategory.setAdapter(adapter);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                VolleyLog.e("Error: ", error.getMessage());
+            }
+        }) {
+            @Override
+            public Map<String, String> getHeaders() throws AuthFailureError {
+                Map<String, String> params = new HashMap<String, String>();
+                params.put("Content-Type", "application/json");
+                params.put("Authorization", "Token token=" + apiKey);
+                return params;
+            }
+        };
+
+
+        AppController.getInstance().addToRequestQueue(req);
     }
 
     @Override
@@ -346,4 +337,6 @@ public class ArticleFragment extends Fragment implements IClickListener, View.On
                 break;
         }
     }
+
+
 }

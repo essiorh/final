@@ -13,7 +13,7 @@ public class GroupItem {
     private String mTitle;
 
 
-    private GroupItem(int id, String title) {
+    public GroupItem(int id, String title) {
         this._id = id;
         this.mTitle = title;
     }

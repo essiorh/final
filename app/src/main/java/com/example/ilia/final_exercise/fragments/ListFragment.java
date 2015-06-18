@@ -8,7 +8,10 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
+import android.view.ContextMenu;
 import android.view.LayoutInflater;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -28,6 +31,7 @@ import com.example.ilia.final_exercise.AppController;
 import com.example.ilia.final_exercise.R;
 import com.example.ilia.final_exercise.activities.MainActivity;
 import com.example.ilia.final_exercise.adapters.ListExpandableAdapter;
+import com.example.ilia.final_exercise.database.AppContentProvider;
 import com.example.ilia.final_exercise.database.AppSQLiteOpenHelper;
 import com.example.ilia.final_exercise.interfaces.IClickListener;
 import com.example.ilia.final_exercise.interfaces.IStateItemChange;
@@ -269,6 +273,44 @@ public class ListFragment extends Fragment implements Spinner.OnItemSelectedList
         return cursorLoader;
     }
 
+    @Override
+    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
+        super.onCreateContextMenu(menu, v, menuInfo);
+        if (v.getId() == R.id.def_list) {
+            MenuInflater inflater = getActivity().getMenuInflater();
+            inflater.inflate(R.menu.menu_main, menu);
+        } /*else if(v.getId() == R.id.exp_list) {
+            MenuInflater inflater = getActivity().getMenuInflater();
+            inflater.inflate(R.menu.menu_main, menu);
+        }*/
+    }
+    @Override
+    public boolean onContextItemSelected(MenuItem item) {
+        AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item
+                        .getMenuInfo();
+                Uri uri = Uri.parse(CONTENT_URI_ARTICLES + "/" + info.id);
+        String[] projection = { COLUMN_TITLE,
+                ARTICLES_COLUMN_DESCRIPTION };
+        Cursor cursor = getActivity().getContentResolver().query(uri, projection, null, null,
+                null);
+
+        if (cursor != null) {
+            cursor.moveToFirst();
+
+            String title=cursor.getString(cursor
+                    .getColumnIndexOrThrow(COLUMN_TITLE));
+            int id=cursor.getInt(cursor
+                    .getColumnIndexOrThrow(COLUMN_ID));
+
+            // always close the cursor
+            cursor.close();
+        }
+
+
+                getActivity().getContentResolver().delete(uri, null, null);
+
+        return true;
+    }
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {

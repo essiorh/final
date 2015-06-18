@@ -6,6 +6,8 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 
 import com.example.ilia.final_exercise.R;
+import com.example.ilia.final_exercise.fragments.ArticleFragment;
+import com.example.ilia.final_exercise.fragments.ListFragment;
 import com.example.ilia.final_exercise.interfaces.IClickListener;
 import com.example.ilia.final_exercise.interfaces.IStateItemChange;
 import com.example.ilia.final_exercise.database.ArticleItem;
@@ -14,27 +16,26 @@ import java.net.URI;
 
 
 public class MainActivity extends BaseActivity {
-    private Fragment fragmentList;
-    private Fragment fragmentArticle;
+    public static final String LIST_FRAGMENT = "list_fragment";
+    public static final String ARTICLE_FRAGMENT = "article_fragment";
 
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        //setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         setContentView(R.layout.activity_main);
-        fragmentList=getSupportFragmentManager().findFragmentById(R.id.frg_list);
-        fragmentArticle=getSupportFragmentManager().findFragmentById(R.id.frg_article);
 
-        //getSupportFragmentManager().beginTransaction().add(R.id.frg_list, new ListFragment(), LIST_FRAGMENT).commit();
-        //getSupportFragmentManager().beginTransaction().add(R.id.frg_article, new ArticleFragment(), TITLE_FRAGMENT).commit();
-
+        if (savedInstanceState == null) {
+            getSupportFragmentManager().beginTransaction()
+                    .add(R.id.frg_list, new ListFragment(), LIST_FRAGMENT)
+                    .add(R.id.frg_article, new ArticleFragment(), ARTICLE_FRAGMENT).commit();
+        }
     }
 
     @Override
     public void getArticleToAnotherFragment(Uri uri) {
-        IClickListener iClickListener=(IClickListener)fragmentArticle;
+        IClickListener iClickListener=(IClickListener)getSupportFragmentManager().findFragmentByTag(ARTICLE_FRAGMENT);
         iClickListener.getArticleToAnotherFragment(uri);
     }
 
@@ -44,7 +45,7 @@ public class MainActivity extends BaseActivity {
 
     @Override
     public void updateArticleItem(ArticleItem articleItem) {
-        IStateItemChange iClickListener=(IStateItemChange)fragmentList;
+        IStateItemChange iClickListener=(IStateItemChange)getSupportFragmentManager().findFragmentByTag(LIST_FRAGMENT);
         iClickListener.updateArticleItem(articleItem);
     }
 

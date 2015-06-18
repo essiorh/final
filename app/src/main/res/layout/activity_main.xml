@@ -7,21 +7,17 @@
     android:orientation="horizontal"
     android:background="@color/highlighted_text_material_dark">
 
-    <fragment
-        class="com.example.ilia.final_exercise.fragments.ListFragment"
+    <FrameLayout
         android:id="@+id/frg_list"
         android:layout_weight="0.35"
         android:layout_width="0dp"
         android:layout_height="match_parent"
-        tools:layout="@layout/list_fragment"
         />
-    <fragment
-        class="com.example.ilia.final_exercise.fragments.ArticleFragment"
+    <FrameLayout
         android:id="@+id/frg_article"
         android:layout_weight="0.65"
         android:layout_width="0dp"
-        android:layout_height="match_parent"
-        tools:layout="@layout/article_fragment" />
+        android:layout_height="match_parent" />
 
 
 </LinearLayout>
