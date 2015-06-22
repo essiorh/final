@@ -11,6 +11,9 @@
     <string name="published">Published ?</string>
     <string name="save">Save</string>
     <string name="add_new_article">add new article</string>
+    <string name="can_not_edit">You can\'t edit</string>
+    <string name="delete_article">Delete article</string>
+    <string name="can_not_delete">Can not delete the foreign article</string>
 
 
     <string-array name="spinner_values">

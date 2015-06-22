@@ -3,12 +3,12 @@ package com.example.ilia.final_exercise.fragments;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -16,8 +16,11 @@ import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.android.volley.AuthFailureError;
+import com.android.volley.NetworkResponse;
+import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.VolleyLog;
@@ -25,27 +28,37 @@ import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.example.ilia.final_exercise.AppController;
 import com.example.ilia.final_exercise.R;
-import com.example.ilia.final_exercise.activities.MainActivity;
 import com.example.ilia.final_exercise.database.ArticleItem;
 import com.example.ilia.final_exercise.database.GroupItem;
 import com.example.ilia.final_exercise.interfaces.IClickListener;
 import com.example.ilia.final_exercise.interfaces.IStateItemChange;
 
+import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.mime.MultipartEntity;
+import org.apache.http.entity.mime.MultipartEntityBuilder;
+import org.apache.http.entity.mime.content.FileBody;
+import org.apache.http.entity.mime.content.StringBody;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import static com.example.ilia.final_exercise.database.AppContentProvider.CONTENT_URI_ARTICLES;
 import static com.example.ilia.final_exercise.database.AppSQLiteOpenHelper.ARTICLES_COLUMN_CATEGORY_ID;
-import static com.example.ilia.final_exercise.database.AppSQLiteOpenHelper.ARTICLES_COLUMN_CREATE_AT;
 import static com.example.ilia.final_exercise.database.AppSQLiteOpenHelper.ARTICLES_COLUMN_DESCRIPTION;
 import static com.example.ilia.final_exercise.database.AppSQLiteOpenHelper.ARTICLES_COLUMN_OWN;
 import static com.example.ilia.final_exercise.database.AppSQLiteOpenHelper.ARTICLES_COLUMN_PUBLISHED;
@@ -57,7 +70,7 @@ import static com.example.ilia.final_exercise.database.AppSQLiteOpenHelper.COLUM
  * Created by ilia on 16.06.15.
  */
 public class ArticleFragment extends Fragment implements IClickListener, View.OnClickListener,
-                                                        Spinner.OnItemClickListener, IStateItemChange {
+                                                            IStateItemChange {
     private TextView textTitle;
     private TextView textDescription;
     private Spinner spinnerCategory;
@@ -70,11 +83,12 @@ public class ArticleFragment extends Fragment implements IClickListener, View.On
     private final static String urlJsonArray = "http://editors.yozhik.sibext.ru/categories.json";
     private final static String urlJsonArrayInsert = "http://editors.yozhik.sibext.ru/articles.json";
     private final static String apiKey="bdf6064c9b5a4011ee2f36b082bb4e5d";
-    private String jsonResponse;
-    private List<GroupItem> listCategoty_id;
+    private ArrayList<GroupItem> listCategory_id;
+    private String[] stringsCategory;
+    private ArticleItem articleItem;
+
     private JSONObject mArticleView;
 
-    private static String TAG = MainActivity.class.getSimpleName();
 
 
     public ArticleFragment() {
@@ -87,6 +101,7 @@ public class ArticleFragment extends Fragment implements IClickListener, View.On
         textTitle = (TextView) inflateView.findViewById(R.id.editText);
         textDescription = (TextView) inflateView.findViewById(R.id.editText2);
         spinnerCategory = (Spinner) inflateView.findViewById(R.id.spinner);
+        spinnerCategory.setEnabled(false);
         imagePhoto = (ImageView) inflateView.findViewById(R.id.imageView);
 
         switchPublished = (Switch) inflateView.findViewById(R.id.switch1);
@@ -97,16 +112,29 @@ public class ArticleFragment extends Fragment implements IClickListener, View.On
         buttonView.setOnClickListener(this);
         buttonEdit.setOnClickListener(this);
         buttonSave.setOnClickListener(this);
-        if (listCategoty_id==null){
-            listCategoty_id=new ArrayList<>();
-            getCategory_ids();
-        }
+        listCategory_id = new ArrayList<>();
+        getCategory_ids();
+
 
         return inflateView;
     }
 
     private void request() {
 
+        mArticleView = new JSONObject();
+        try {
+
+            mArticleView.put("title", textTitle.getText().toString());
+            mArticleView.put("description", textDescription.getText().toString());
+            mArticleView.put("published", true);
+            int category_id= (int) spinnerCategory.getSelectedItemId();
+            int indexSelectedCategory=listCategory_id.get(category_id).get_id();
+
+            mArticleView.put("category_id", indexSelectedCategory);
+
+        } catch (Exception ex) {
+            throw  new IllegalArgumentException(ex.getMessage());
+        }
 
         JsonObjectRequest req = new JsonObjectRequest(urlJsonArrayInsert, mArticleView,
                 new Response.Listener<JSONObject>() {
@@ -115,29 +143,32 @@ public class ArticleFragment extends Fragment implements IClickListener, View.On
                         int id = 0;
                         String title = "";
                         String description = "";
+                        String date="";
                         int category_id = 0;
                         try {
                             //JSONArray jsonArray = response.getJSONArray("article");
                             //for (int i = 0; i < jsonArray.length(); i++) {
-                                JSONObject jsonObject = response.getJSONObject("article");
-                                id = jsonObject.getInt("id");
-                                title = jsonObject.getString("title");
-                                description = jsonObject.getString("description");
-                                category_id = jsonObject.getInt("category_id");
+                            JSONObject jsonObject = response.getJSONObject("article");
+                            id = jsonObject.getInt("id");
+                            title = jsonObject.getString("title");
+                            description = jsonObject.getString("description");
+                            category_id = jsonObject.getInt("category_id");
+                            boolean own = jsonObject.getBoolean("own");
+                            date = jsonObject.getString("title");
+                            ContentValues values = new ContentValues();
+                            values.put(COLUMN_ID, id);
+                            values.put(COLUMN_TITLE, title);
+                            values.put(ARTICLES_COLUMN_DESCRIPTION, description);
+                            values.put(ARTICLES_COLUMN_CATEGORY_ID, category_id);
+                            values.put(ARTICLES_COLUMN_OWN, own ? 1 : 0);
+                            values.put(ARTICLES_COLUMN_UPDATE_AT,date);
+                            getActivity().getContentResolver().insert(CONTENT_URI_ARTICLES, values);
                             //}
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
 
-                        ContentValues values = new ContentValues();
-                        values.put(COLUMN_ID, id);
-                        values.put(COLUMN_TITLE, title);
-                        values.put(ARTICLES_COLUMN_DESCRIPTION, description);
-                        values.put(ARTICLES_COLUMN_CATEGORY_ID, category_id);
-                        values.put(ARTICLES_COLUMN_CREATE_AT, "");
-                        values.put(ARTICLES_COLUMN_UPDATE_AT, "");
-                        values.put(ARTICLES_COLUMN_PUBLISHED, true);
-                        getActivity().getContentResolver().insert(CONTENT_URI_ARTICLES, values);
+
                     }
                 }, new Response.ErrorListener() {
             @Override
@@ -158,92 +189,118 @@ public class ArticleFragment extends Fragment implements IClickListener, View.On
 
     @Override
     public void getArticleToAnotherFragment(Uri uri) {
-        HttpClient hc = new DefaultHttpClient();
-        String message;
 
-        HttpPost p = new HttpPost(urlJsonArrayInsert);
-        mArticleView = new JSONObject();
-        try {
-
-            mArticleView.put("title", textTitle.getText().toString());
-            mArticleView.put("description", textDescription.getText().toString());
-            mArticleView.put("published", true);
-            mArticleView.put("category_id", spinnerCategory.getSelectedItemId());
-
-        } catch (Exception ex) {
-
-        }
         todoUri=uri;
-        fillData(todoUri);
+        if (fillData(todoUri)) {
+            mArticleView=new JSONObject();
+            try {
+                mArticleView.put(COLUMN_TITLE, textTitle.getText().toString());
+                mArticleView.put(ARTICLES_COLUMN_DESCRIPTION, textDescription.getText().toString());
+                mArticleView.put(ARTICLES_COLUMN_PUBLISHED, true);
+                int category_Id= (int) spinnerCategory.getSelectedItemId();
+                int indexSelectedCategories=listCategory_id.get(category_Id).get_id();
+                mArticleView.put(ARTICLES_COLUMN_OWN,switchPublished.isChecked());
+                mArticleView.put(ARTICLES_COLUMN_CATEGORY_ID, indexSelectedCategories);
+                if (!switchPublished.isChecked()) {
+                    isOwnSetViewsEnabled(false);
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        } else {
+            textTitle.setText("");
+            textDescription.setText("");
+            spinnerCategory.setSelection(0);
+            switchPublished.setChecked(true);
+            mArticleView=null;
+            isOwnSetViewsEnabled(true);
+        }
 
     }
 
-    private void fillData(Uri uri) {
-        String[] projection = { COLUMN_TITLE,
-                ARTICLES_COLUMN_DESCRIPTION,
-                ARTICLES_COLUMN_OWN};
-        Cursor cursor = getActivity().getContentResolver().query(uri, projection, null, null,
-                null);
-        if (cursor != null) {
-            cursor.moveToFirst();
 
-            textTitle.setText(cursor.getString(cursor
-                    .getColumnIndexOrThrow(COLUMN_TITLE)));
-            textDescription.setText(cursor.getString(cursor
-                    .getColumnIndexOrThrow(ARTICLES_COLUMN_DESCRIPTION)));
-            int publ=cursor.getInt(cursor
-                    .getColumnIndexOrThrow(ARTICLES_COLUMN_OWN));
-            switchPublished.setChecked(publ>0);
+    private boolean fillData(Uri uri) {
+        boolean result=false;
+        if (uri!=null) {
+            result=true;
+            String[] projection = {COLUMN_ID,COLUMN_TITLE,
+                    ARTICLES_COLUMN_DESCRIPTION,
+                    ARTICLES_COLUMN_CATEGORY_ID,
+                    ARTICLES_COLUMN_OWN};
+            Cursor cursor = getActivity().getContentResolver().query(uri, projection, null, null,
+                    null);
 
-            // always close the cursor
-            cursor.close();
+            if (cursor != null) {
+                articleItem = new ArticleItem();
+
+                cursor.moveToFirst();
+                try {
+                    articleItem = ArticleItem.fromCursor(cursor);
+                } catch (MalformedURLException e) {
+                    e.printStackTrace();
+                }
+                textTitle.setText(articleItem.getmTitle());
+                textDescription.setText(articleItem.getmDescription());
+                int category_id = articleItem.getmCategory_id();
+                int indexSelectedCategory = 0;
+                for (int i = 0; i < stringsCategory.length; i++) {
+                    if (listCategory_id.get(i).get_id() == category_id) {
+                        indexSelectedCategory = i;
+                        break;
+                    }
+                }
+                spinnerCategory.setSelection(indexSelectedCategory);
+                switchPublished.setChecked(articleItem.getmOwn());
+
+                // always close the cursor
+                cursor.close();
+
+            }
+
         }
+        return result;
     }
 
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.button_view:
+                isOwnSetViewsEnabled(false);
+                try {
+                    new MultipartRequest(urlJsonArray, new Response.ErrorListener() {
+                        @Override
+                        public void onErrorResponse(VolleyError error) {
 
-                buttonSave.setVisibility(View.INVISIBLE);
-                spinnerCategory.setVisibility(View.INVISIBLE);
-                textTitle.setEnabled(false);
-                textDescription.setEnabled(false);
-                spinnerCategory.setEnabled(false);
+                        }
+                    }, new Response.Listener<String>() {
+                        @Override
+                        public void onResponse(String response) {
+
+                        }
+                    },File.createTempFile("",""),new String());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
                 break;
             case R.id.button_edit:
-                spinnerCategory.setVisibility(View.VISIBLE);
-                buttonSave.setVisibility(View.VISIBLE);
-                textTitle.setEnabled(true);
-                textDescription.setEnabled(true);
-                spinnerCategory.setEnabled(true);
+                try {
+                    if ((mArticleView!=null)&&(mArticleView.getBoolean("own"))) {
+                        isOwnSetViewsEnabled(true);
+                    } else {
+                        Toast.makeText(getActivity(),getResources().getString(R.string.can_not_edit),Toast.LENGTH_SHORT).show();
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
                 break;
             case R.id.button_save:
-                /*if (mArticleItem!=null) {
-                    mArticleItem.setmTitle(textTitle.getText().toString());
-                    IStateItemChange iStateItemChange=(IStateItemChange)getActivity();
-                    iStateItemChange.updateArticleItem(mArticleItem);*/
-                if (mArticleView==null)
-                {
+                if (mArticleView==null){
                     request();
                 } else {
-
+                    request();
+                    mArticleView=null;
                 }
-
-                    /*if (mArticleUri == null) {
-                        mArticleUri = AppController.getAppContext().getContentResolver()
-                                .insert(AppContentProvider.CONTENT_URI_ARTICLES, values);
-                    } else {
-                        AppController.getAppContext().getContentResolver()
-                                .update(mArticleUri, values, null, null);
-                    }
-*/
-                //}
-                spinnerCategory.setVisibility(View.INVISIBLE);
-                buttonSave.setVisibility(View.INVISIBLE);
-                textTitle.setEnabled(false);
-                textDescription.setEnabled(false);
-                spinnerCategory.setEnabled(false);
+                isOwnSetViewsEnabled(false);
                 break;
 
 
@@ -264,14 +321,15 @@ public class ArticleFragment extends Fragment implements IClickListener, View.On
                         int id = category.getInt("id");
                         String title = category.getString("title");
                         GroupItem groupItem = new GroupItem(id,title);
-                        listCategoty_id.add(groupItem);
+                        listCategory_id.add(groupItem);
                     }
-                    String[] strings=new String[listCategoty_id.size()];
-                    for (int i=0;i<listCategoty_id.size();i++) {
-                        strings[i]=listCategoty_id.get(i).getmTitle();
+                    stringsCategory = new String[listCategory_id.size()];
+                    for (int i=0;i< listCategory_id.size();i++) {
+                        stringsCategory[i]= listCategory_id.get(i).getmTitle();
                     }
+
                     ArrayAdapter<String> adapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_spinner_item
-                            , strings);
+                            , stringsCategory);
                     spinnerCategory.setAdapter(adapter);
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -294,17 +352,6 @@ public class ArticleFragment extends Fragment implements IClickListener, View.On
         AppController.getInstance().addToRequestQueue(req);
     }
 
-
-    @Override
-    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        switch (parent.getId()) {
-            case R.id.spinner:
-
-                break;
-        }
-    }
-
-
     @Override
     public void deleteArticleItem(ArticleItem articleItem) {
 
@@ -319,4 +366,81 @@ public class ArticleFragment extends Fragment implements IClickListener, View.On
     public void addArticleItem(Uri articleItem) {
 
     }
+
+
+    private void isOwnSetViewsEnabled(boolean flag) {
+        buttonSave.setVisibility(flag ? View.VISIBLE : View.INVISIBLE);
+        textTitle.setEnabled(flag);
+        textDescription.setEnabled(flag);
+        spinnerCategory.setEnabled(flag);
+    }
+
+    public class MultipartRequest extends Request<String> {
+
+        private MultipartEntity entity = new MultipartEntity();
+
+        private static final String FILE_PART_NAME = "file";
+        private static final String STRING_PART_NAME = "text";
+
+        private final Response.Listener<String> mListener;
+        private final File mFilePart;
+        private final String mStringPart;
+
+        public MultipartRequest(String url, Response.ErrorListener errorListener, Response.Listener<String> listener, File file, String stringPart)
+        {
+            super(Request.Method.POST, url, errorListener);
+
+            mListener = listener;
+            mFilePart = file;
+            mStringPart = stringPart;
+            buildMultipartEntity();
+        }
+
+        private void buildMultipartEntity()
+        {
+            entity.addPart(FILE_PART_NAME, new FileBody(mFilePart));
+            try
+            {
+                entity.addPart(STRING_PART_NAME, new StringBody(mStringPart));
+            }
+            catch (UnsupportedEncodingException e)
+            {
+                VolleyLog.e("UnsupportedEncodingException");
+            }
+        }
+
+        @Override
+        public String getBodyContentType()
+        {
+            return entity.getContentType().getValue();
+        }
+
+        @Override
+        public byte[] getBody() throws AuthFailureError
+        {
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            try
+            {
+                entity.writeTo(bos);
+            }
+            catch (IOException e)
+            {
+                VolleyLog.e("IOException writing to ByteArrayOutputStream");
+            }
+            return bos.toByteArray();
+        }
+
+        @Override
+        protected Response<String> parseNetworkResponse(NetworkResponse response)
+        {
+            return Response.success("Uploaded", getCacheEntry());
+        }
+
+        @Override
+        protected void deliverResponse(String response)
+        {
+            mListener.onResponse(response);
+        }
+    }
+
 }

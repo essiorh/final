@@ -69,8 +69,7 @@
         android:layout_weight="0.1"
         android:layout_height="0dp"
         android:id="@+id/spinner"
-        android:visibility="invisible"
-        android:enabled="false" />
+        android:visibility="visible" />
 
     <LinearLayout
         android:layout_width="match_parent"

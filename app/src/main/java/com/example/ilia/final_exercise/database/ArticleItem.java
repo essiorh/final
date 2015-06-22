@@ -4,6 +4,8 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.support.v7.app.AppCompatActivity;
 
+import org.json.JSONObject;
+
 import java.net.MalformedURLException;
 import java.net.URL;
 
@@ -21,9 +23,9 @@ public class ArticleItem {
     private String mCreate_at;
     private String mUpdate_at;
     private Boolean mOwn;
-    private URL mPhoto;
+    private String mPhoto;
 
-    private ArticleItem(int id, String title, String descr, boolean publ, int category_id, String creat_at, String update_at, boolean own, URL photo) {
+    private ArticleItem(int id, String title, String descr, boolean publ, int category_id, String creat_at, String update_at, boolean own, String  photo) {
         this._id = id;
         this.mTitle = title;
         this.mDescription = descr;
@@ -34,8 +36,9 @@ public class ArticleItem {
         this.mOwn = own;
         this.mPhoto = photo;
     }
+    public ArticleItem(){}
 
-    public ArticleItem(String title, String descr, boolean publ, int category_id, String creat_at, String update_at, boolean own, URL photo) {
+    public ArticleItem(String title, String descr, boolean publ, int category_id, String creat_at, String update_at, boolean own, String photo) {
         this(-1, title, descr, publ, category_id, creat_at, update_at, own, photo);
     }
 
@@ -57,26 +60,30 @@ public class ArticleItem {
     }
 
     public static ArticleItem fromCursor(Cursor c) throws MalformedURLException {
-        int idColId = c.getColumnIndex(COLUMN_ID);
-        int titleColId = c.getColumnIndex(COLUMN_TITLE);
-        int descrColId = c.getColumnIndex(ARTICLES_COLUMN_DESCRIPTION);
-        int publColId = c.getColumnIndex(ARTICLES_COLUMN_PUBLISHED);
-        int categoryIdColId = c.getColumnIndex(ARTICLES_COLUMN_CATEGORY_ID);
-        int creatAtColId = c.getColumnIndex(ARTICLES_COLUMN_CREATE_AT);
-        int updateAtColId = c.getColumnIndex(ARTICLES_COLUMN_UPDATE_AT);
+        int idColId = c.getColumnIndexOrThrow(COLUMN_ID);
+        int titleColId = c.getColumnIndexOrThrow(COLUMN_TITLE);
+        int descrColId = c.getColumnIndexOrThrow(ARTICLES_COLUMN_DESCRIPTION);
+        //int publColId = c.getColumnIndexOrThrow(ARTICLES_COLUMN_PUBLISHED);
+        int categoryIdColId = c.getColumnIndexOrThrow(ARTICLES_COLUMN_CATEGORY_ID);
+        //int creatAtColId = c.getColumnIndexOrThrow(ARTICLES_COLUMN_CREATE_AT);
+        //int updateAtColId = c.getColumnIndexOrThrow(ARTICLES_COLUMN_UPDATE_AT);
         int ownColId = c.getColumnIndex(ARTICLES_COLUMN_OWN);
-        int photoColId = c.getColumnIndex(ARTICLES_COLUMN_PHOTO);
+        //int photoColId = c.getColumnIndexOrThrow(ARTICLES_COLUMN_PHOTO);
 
         return new ArticleItem(
                 c.getInt(idColId),
                 c.getString(titleColId),
                 c.getString(descrColId),
-                c.getInt(publColId) == 1,
+                //c.getInt(publColId) == 1,
+                true,
                 c.getInt(categoryIdColId),
-                c.getString(creatAtColId),
-                c.getString(updateAtColId),
+                //c.getString(creatAtColId),
+                "",
+                //c.getString(updateAtColId),
+                "",
                 c.getInt(ownColId) == 1,
-                new URL(c.getString(photoColId)));
+                //new URL(c.getString(photoColId)));
+                "");
     }
 
 
@@ -144,11 +151,11 @@ public class ArticleItem {
         this.mOwn = mOwn;
     }
 
-    public URL getmPhoto() {
+    public String getmPhoto() {
         return mPhoto;
     }
 
-    public void setmPhoto(URL mPhoto) {
+    public void setmPhoto(String mPhoto) {
         this.mPhoto = mPhoto;
     }
 }

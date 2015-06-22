@@ -9,6 +9,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
+import android.text.TextUtils;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -112,10 +113,16 @@ public class AppContentProvider extends ContentProvider {
             case CODE_ONE_ARTICLE:
                 String id = uri.getLastPathSegment();
 
-                rowsDeleted = sqlDB.delete(TABLE_ARTICLES,
-                        COLUMN_ID + "=" + id
-                                + " and " + selection,
-                        selectionArgs);
+                if (TextUtils.isEmpty(selection)) {
+                    rowsDeleted = sqlDB.delete(TABLE_ARTICLES,
+                            COLUMN_ID + "= ?",
+                            new String[]{id});
+                } else {
+                    rowsDeleted = sqlDB.delete(TABLE_ARTICLES,
+                            COLUMN_ID + "= ? "
+                                    + " and " + selection,
+                            combine( new String[]{id} , selectionArgs));
+                }
                 break;
             default:
                 throw new IllegalArgumentException("Unknown URI: " + uri);
@@ -149,7 +156,13 @@ public class AppContentProvider extends ContentProvider {
         getContext().getContentResolver().notifyChange(uri, null);
         return rowsDeleted;
     }
-
+    public static String[] combine(String[] a, String[] b) {
+        int length = a.length + b.length;
+        String[] result = new String[length];
+        System.arraycopy(a, 0, result, 0, a.length);
+        System.arraycopy(b, 0, result, a.length, b.length);
+        return result;
+    }
     @Override
     public String getType(Uri uri) {
         return null;
