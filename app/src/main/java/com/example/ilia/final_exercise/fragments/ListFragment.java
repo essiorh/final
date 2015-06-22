@@ -437,8 +437,8 @@ public class ListFragment extends Fragment implements Spinner.OnItemSelectedList
     }
 
     @Override
-    public void addArticleItem(Uri articleItem) {
-
+    public void addArticleItem() {
+        receiveArticlesFromServer();
     }
 
 }

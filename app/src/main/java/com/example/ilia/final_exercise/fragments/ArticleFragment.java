@@ -39,6 +39,7 @@ import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.example.ilia.final_exercise.AppController;
 import com.example.ilia.final_exercise.R;
+import com.example.ilia.final_exercise.database.AppSQLiteOpenHelper;
 import com.example.ilia.final_exercise.database.ArticleItem;
 import com.example.ilia.final_exercise.database.GroupItem;
 import com.example.ilia.final_exercise.imageupload.MultipartRequest;
@@ -56,16 +57,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.example.ilia.final_exercise.database.AppContentProvider.CONTENT_URI_ARTICLES;
-import static com.example.ilia.final_exercise.database.AppSQLiteOpenHelper.ARTICLES_COLUMN_CATEGORY_ID;
-import static com.example.ilia.final_exercise.database.AppSQLiteOpenHelper.ARTICLES_COLUMN_DESCRIPTION;
-import static com.example.ilia.final_exercise.database.AppSQLiteOpenHelper.ARTICLES_COLUMN_OWN;
-import static com.example.ilia.final_exercise.database.AppSQLiteOpenHelper.ARTICLES_COLUMN_PHOTO;
-import static com.example.ilia.final_exercise.database.AppSQLiteOpenHelper.ARTICLES_COLUMN_PUBLISHED;
-import static com.example.ilia.final_exercise.database.AppSQLiteOpenHelper.ARTICLES_COLUMN_UPDATE_AT;
-import static com.example.ilia.final_exercise.database.AppSQLiteOpenHelper.COLUMN_ID;
-import static com.example.ilia.final_exercise.database.AppSQLiteOpenHelper.COLUMN_TITLE;
-import static com.example.ilia.final_exercise.database.AppSQLiteOpenHelper.TABLE_CATEGORIES;
+import static com.example.ilia.final_exercise.database.AppContentProvider.*;
+import static com.example.ilia.final_exercise.database.AppSQLiteOpenHelper.*;
 
 /**
  * Created by ilia on 16.06.15.
@@ -181,7 +174,7 @@ public class ArticleFragment extends Fragment implements IClickListener, View.On
     }
 
     void sendRequestSavePhoto(long articleID, Uri photoUri){
-        getArticleItemFromCursor(null,-1);
+        //getArticleItemFromCursor(null, -1);
 
         final ProgressDialog progressDialog = ProgressDialog.show(getActivity(), DIALOG_TITLE,
                 DIALOG_MESSAGE, true);
@@ -198,8 +191,13 @@ public class ArticleFragment extends Fragment implements IClickListener, View.On
             @Override
             public void onResponse(String response) {
                 try {
+
                     JSONObject jsonObjectPhoto=new JSONObject(response);
                     mArticleView.put(ARTICLES_COLUMN_PHOTO, jsonObjectPhoto.getJSONObject(ARTICLES_COLUMN_PHOTO).getString("url"));
+
+
+                    addPhotoToArticleOnServer();
+
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
@@ -524,27 +522,37 @@ public class ArticleFragment extends Fragment implements IClickListener, View.On
                         int id = 0;
                         String title = "";
                         String description = "";
-                        String date="";
+                        String date = "";
                         int category_id = 0;
-                        boolean own=false;
+                        boolean own = false;
                         try {
                             JSONObject jsonObject = response.getJSONObject("article");
                             id = jsonObject.getInt("id");
-                            if (imageUri!=null) {
-                                sendRequestSavePhoto(id, imageUri);
-                            }
+                            title = jsonObject.getString(COLUMN_TITLE);
+                            description = jsonObject.getString(ARTICLES_COLUMN_DESCRIPTION);
+                            category_id = jsonObject.getInt(ARTICLES_COLUMN_CATEGORY_ID);
+                            own = jsonObject.getBoolean(ARTICLES_COLUMN_OWN);
+                            //date = jsonObject.getString(ARTICLES_COLUMN_UPDATE_AT);
                             ContentValues values = new ContentValues();
                             values.put(COLUMN_ID, id);
                             values.put(COLUMN_TITLE, title);
                             values.put(ARTICLES_COLUMN_DESCRIPTION, description);
                             values.put(ARTICLES_COLUMN_CATEGORY_ID, category_id);
                             values.put(ARTICLES_COLUMN_OWN, own ? 1 : 0);
-                            values.put(ARTICLES_COLUMN_UPDATE_AT,date);
-                            getActivity().getContentResolver().insert(CONTENT_URI_ARTICLES, values);
+                            values.put(ARTICLES_COLUMN_UPDATE_AT, date);
+                            todoUri = getActivity().getContentResolver().insert(CONTENT_URI_ARTICLES, values);
 
-                            getArticleItemFromCursor(null,id);
+                            articleItem = new ArticleItem(title, description, true,
+                                    category_id, "", "", own, "");
+                            articleItem.set_id(id);
 
-                            addPhotoToArticleOnServer();
+
+
+                            if (imageUri != null) {
+                                sendRequestSavePhoto(id, imageUri);
+                            }
+
+
 
                         } catch (JSONException e) {
                             e.printStackTrace();
@@ -635,7 +643,9 @@ public class ArticleFragment extends Fragment implements IClickListener, View.On
                         String date="";
                         String url="";
                         int category_id = 0;
-                        try {
+                        IStateItemChange iStateItemChange=(IStateItemChange)getActivity();
+                        iStateItemChange.addArticleItem();
+                        /*try {
                             JSONObject jsonObject = response.getJSONObject("article");
                             id = jsonObject.getInt("id");
                             sendRequestSavePhoto(id, imageUri);
@@ -654,11 +664,13 @@ public class ArticleFragment extends Fragment implements IClickListener, View.On
                             values.put(ARTICLES_COLUMN_OWN, own ? 1 : 0);
                             values.put(ARTICLES_COLUMN_UPDATE_AT,date);
                             values.put(ARTICLES_COLUMN_PHOTO,url);
+                            getActivity().getContentResolver().insert(todoUri, values);
+
                             //todo do it !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                             //getActivity().getContentResolver().update(CONTENT_URI_ARTICLES, values);
                         } catch (JSONException e) {
                             e.printStackTrace();
-                        }
+                        }*/
                     }
                 }, new Response.ErrorListener() {
             @Override
@@ -739,7 +751,7 @@ public class ArticleFragment extends Fragment implements IClickListener, View.On
     }
 
     @Override
-    public void addArticleItem(Uri articleItem) {
+    public void addArticleItem() {
 
     }
 

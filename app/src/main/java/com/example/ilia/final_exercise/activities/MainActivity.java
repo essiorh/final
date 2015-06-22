@@ -41,12 +41,13 @@ public class MainActivity extends BaseActivity {
 
     @Override
     public void updateArticleItem(ArticleItem articleItem) {
-        IStateItemChange iClickListener=(IStateItemChange)getSupportFragmentManager().findFragmentByTag(LIST_FRAGMENT);
-        iClickListener.updateArticleItem(articleItem);
+
     }
 
     @Override
-    public void addArticleItem(Uri articleItem) {
+    public void addArticleItem() {
+        IStateItemChange iClickListener=(IStateItemChange)getSupportFragmentManager().findFragmentByTag(LIST_FRAGMENT);
+        iClickListener.addArticleItem();
     }
 
 

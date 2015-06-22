@@ -10,5 +10,5 @@ import com.example.ilia.final_exercise.database.ArticleItem;
 public interface IStateItemChange {
     void deleteArticleItem(ArticleItem articleItem);
     void updateArticleItem(ArticleItem articleItem);
-    void addArticleItem(Uri articleItem);
+    void addArticleItem();
 }
