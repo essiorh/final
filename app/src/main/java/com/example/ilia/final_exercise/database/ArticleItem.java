@@ -25,7 +25,8 @@ public class ArticleItem {
     private Boolean mOwn;
     private String mPhoto;
 
-    private ArticleItem(int id, String title, String descr, boolean publ, int category_id, String creat_at, String update_at, boolean own, String  photo) {
+    private ArticleItem(int id, String title, String descr, boolean publ, int category_id,
+                        String creat_at, String update_at, boolean own, String  photo) {
         this._id = id;
         this.mTitle = title;
         this.mDescription = descr;
@@ -38,7 +39,8 @@ public class ArticleItem {
     }
     public ArticleItem(){}
 
-    public ArticleItem(String title, String descr, boolean publ, int category_id, String creat_at, String update_at, boolean own, String photo) {
+    public ArticleItem(String title, String descr, boolean publ, int category_id, String creat_at,
+                       String update_at, boolean own, String photo) {
         this(-1, title, descr, publ, category_id, creat_at, update_at, own, photo);
     }
 

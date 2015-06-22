@@ -8,9 +8,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
-import android.text.Editable;
 import android.text.TextUtils;
-import android.text.TextWatcher;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.MenuInflater;
@@ -22,13 +20,11 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ExpandableListView;
 import android.widget.ImageButton;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
 import android.widget.Spinner;
 import android.widget.Switch;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.volley.AuthFailureError;
@@ -40,14 +36,11 @@ import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.example.ilia.final_exercise.AppController;
 import com.example.ilia.final_exercise.R;
-import com.example.ilia.final_exercise.activities.MainActivity;
 import com.example.ilia.final_exercise.adapters.ListExpandableAdapter;
-import com.example.ilia.final_exercise.database.AppContentProvider;
-import com.example.ilia.final_exercise.database.AppSQLiteOpenHelper;
-import com.example.ilia.final_exercise.interfaces.IClickListener;
-import com.example.ilia.final_exercise.interfaces.IStateItemChange;
 import com.example.ilia.final_exercise.database.ArticleItem;
 import com.example.ilia.final_exercise.database.GroupItem;
+import com.example.ilia.final_exercise.interfaces.IClickListener;
+import com.example.ilia.final_exercise.interfaces.IStateItemChange;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -58,8 +51,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.example.ilia.final_exercise.database.AppContentProvider.*;
-import static com.example.ilia.final_exercise.database.AppSQLiteOpenHelper.*;
+import static com.example.ilia.final_exercise.database.AppContentProvider.CONTENT_URI_ARTICLES;
+import static com.example.ilia.final_exercise.database.AppSQLiteOpenHelper.ARTICLES_COLUMN_CATEGORY_ID;
+import static com.example.ilia.final_exercise.database.AppSQLiteOpenHelper.ARTICLES_COLUMN_DESCRIPTION;
+import static com.example.ilia.final_exercise.database.AppSQLiteOpenHelper.ARTICLES_COLUMN_OWN;
+import static com.example.ilia.final_exercise.database.AppSQLiteOpenHelper.ARTICLES_COLUMN_PUBLISHED;
+import static com.example.ilia.final_exercise.database.AppSQLiteOpenHelper.ARTICLES_COLUMN_UPDATE_AT;
+import static com.example.ilia.final_exercise.database.AppSQLiteOpenHelper.COLUMN_ID;
+import static com.example.ilia.final_exercise.database.AppSQLiteOpenHelper.COLUMN_TITLE;
 
 /**
  * Created by ilia on 08.06.15.
@@ -75,8 +74,6 @@ public class ListFragment extends Fragment implements Spinner.OnItemSelectedList
     private ListView customListView;
     private Spinner mSpinner;
     private ListExpandableAdapter expandableAdapter;
-    //private ListCustomAdapter customAdapter;
-    private TextView mTextView;
     private List<GroupItem> groupItemList = new ArrayList<>();
     private List<ArticleItem> articleItemList = new ArrayList<>();
     private SimpleCursorAdapter cursorAdapter;
@@ -84,12 +81,6 @@ public class ListFragment extends Fragment implements Spinner.OnItemSelectedList
     private ImageButton imageButtonRefresh;
     private ImageButton imageButtonFilter;
     private Switch mSwitchOnlyMy;
-
-    // json array response url
-    // temporary string to show the parsed response
-    private String jsonResponse;
-
-    private static String TAG = MainActivity.class.getSimpleName();
 
     private final static String urlJsonArray = "http://editors.yozhik.sibext.ru/";
     private final static String apiKey = "bdf6064c9b5a4011ee2f36b082bb4e5d";
@@ -113,23 +104,10 @@ public class ListFragment extends Fragment implements Spinner.OnItemSelectedList
         imageButtonRefresh.setOnClickListener(this);
         Button addNewArticleButton = (Button) inflateView.findViewById(R.id.add_new_article);
         addNewArticleButton.setOnClickListener(this);
-        /*mTextView = (TextView) inflateView.findViewById(R.id.filter);
-        mTextView.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                //expandableAdapter.getFilter().filter(s);
-            }
-
-            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
-
-            @Override public void afterTextChanged(Editable s) { }
-        });
-*/
 
         expandableAdapter = new ListExpandableAdapter(getActivity(), groupItemList, articleItemList);
         expandableListView.setAdapter(expandableAdapter);
         expandableListView.setOnChildClickListener(this);
-        //expandableListView.setOnGroupClickListener(this);
 
         // Fields from the database (projection)
         // Must include the _id column for the adapter to work
@@ -137,29 +115,19 @@ public class ListFragment extends Fragment implements Spinner.OnItemSelectedList
         // Fields on the UI to which we map
         int[] to = new int[]{R.id.textChild};
 
-        //customAdapter = new ListCustomAdapter(getActivity(), articleItemList);
-
         getLoaderManager().initLoader(INIT_LOADER, null, this);
 
         cursorAdapter = new SimpleCursorAdapter(getActivity(), R.layout.child_view, null, from, to, 0);
         customListView.setAdapter(cursorAdapter);
+
+        //receive all articles from server and add to DB for cash
         request();
         mSpinner.setOnItemSelectedListener(this);
 
         customListView.setOnItemClickListener(this);
 
         registerForContextMenu(customListView);
-        //registerForContextMenu(expandableListView);
         return inflateView;
-    }
-
-    @Override
-    public boolean onChildClick(ExpandableListView parent, View v, int groupPosition, int childPosition, long id) {
-        IClickListener listener = (IClickListener) getActivity();
-        ArticleItem articleItem = expandableAdapter.getChild(groupPosition, childPosition);
-        //listener.getArticleToAnotherFragment(articleItem);
-
-        return false;
     }
 
     @Override
@@ -178,61 +146,6 @@ public class ListFragment extends Fragment implements Spinner.OnItemSelectedList
     }
 
     @Override
-    public void onNothingSelected(AdapterView<?> parent) {
-    }
-
-    private void request() {
-        getActivity().getContentResolver().delete(CONTENT_URI_ARTICLES, null, null);
-
-        StringRequest req = new StringRequest(urlJsonArray + "articles.json", new Response.Listener<String>() {
-            @Override
-            public void onResponse(String response) {
-                try {
-                    JSONObject jsonObject = new JSONObject(response);
-                    JSONArray jsonArrays = jsonObject.getJSONArray("articles");
-                    for (int i = 0; i < jsonArrays.length(); i++) {
-
-                        JSONObject articles = (JSONObject) jsonArrays.get(i);
-
-                        int id = articles.getInt("id");
-                        String title = articles.getString("title");
-                        String description = articles.getString("description");
-                        int category_id = articles.getInt("category_id");
-                        boolean own = articles.getBoolean("own");
-
-                        ContentValues values = new ContentValues();
-                        values.put(COLUMN_ID, id);
-                        values.put(COLUMN_TITLE, title);
-                        values.put(ARTICLES_COLUMN_DESCRIPTION, description);
-                        values.put(ARTICLES_COLUMN_CATEGORY_ID, category_id);
-                        values.put(ARTICLES_COLUMN_OWN, own ? 1 : 0);
-
-                        getActivity().getContentResolver().insert(CONTENT_URI_ARTICLES, values);
-                    }
-
-                    VolleyLog.v("Response:%n %s", response);
-
-
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-            }
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                VolleyLog.e("Error: ", error.getMessage());
-            }
-        }) {
-            @Override
-            public Map<String, String> getHeaders() throws AuthFailureError {
-                return getStringStringMap();
-            }
-        };
-
-        AppController.getInstance().addToRequestQueue(req);
-    }
-
-    @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         IClickListener listener = (IClickListener) getActivity();
         Uri uri = Uri.parse(CONTENT_URI_ARTICLES + "/"
@@ -243,28 +156,12 @@ public class ListFragment extends Fragment implements Spinner.OnItemSelectedList
     }
 
     @Override
-    public void deleteArticleItem(ArticleItem articleItem) {
-
-    }
-
-    @Override
-    public void updateArticleItem(ArticleItem articleItem) {
-
-    }
-
-    @Override
-    public void addArticleItem(Uri articleItem) {
-
-    }
-
-
-    @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-
         String[] projection;
         CursorLoader cursorLoader;
         String selection=null;
         String[] selectionArgs=null;
+
         switch (id) {
             case INIT_LOADER:
                 break;
@@ -275,9 +172,10 @@ public class ListFragment extends Fragment implements Spinner.OnItemSelectedList
                 }
         }
         projection = new String[]{COLUMN_ID, COLUMN_TITLE, ARTICLES_COLUMN_UPDATE_AT};
-        cursorLoader = new CursorLoader(getActivity(),
-                CONTENT_URI_ARTICLES,
+
+        cursorLoader = new CursorLoader(getActivity(), CONTENT_URI_ARTICLES,
                 projection, selection, selectionArgs, ARTICLES_COLUMN_UPDATE_AT);
+
         return cursorLoader;
     }
 
@@ -287,10 +185,7 @@ public class ListFragment extends Fragment implements Spinner.OnItemSelectedList
         if (v.getId() == R.id.def_list) {
             MenuInflater inflater = getActivity().getMenuInflater();
             inflater.inflate(R.menu.menu_main, menu);
-        } /*else if(v.getId() == R.id.exp_list) {
-            MenuInflater inflater = getActivity().getMenuInflater();
-            inflater.inflate(R.menu.menu_main, menu);
-        }*/
+        }
     }
 
     @Override
@@ -298,38 +193,9 @@ public class ListFragment extends Fragment implements Spinner.OnItemSelectedList
         final AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item
                 .getMenuInfo();
         final Uri uri = Uri.parse(CONTENT_URI_ARTICLES + "/" + info.id);
-        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.DELETE,
-                urlJsonArray + "articles/" + info.id + ".json", null, new Response.Listener<JSONObject>(
 
-        ) {
-            @Override
-            public void onResponse(JSONObject response) {
-                VolleyLog.v("Response:%n %s", response);
-                getActivity().getContentResolver().delete(uri, null, null);
-            }
-        }, new Response.ErrorListener() {
-
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                Toast.makeText(getActivity(), getResources().getString(R.string.can_not_delete), Toast.LENGTH_SHORT).show();
-                VolleyLog.e("Error: ", error.getMessage());
-
-            }
-        }) {
-            @Override
-            public Map<String, String> getHeaders() throws AuthFailureError {
-                return getStringStringMap();
-            }
-        };
-        AppController.getInstance().addToRequestQueue(jsonObjectRequest);
+        AppController.getInstance().addToRequestQueue(getJsonObjectRequest(info, uri));
         return true;
-    }
-
-    private Map<String, String> getStringStringMap() {
-        Map<String, String> params = new HashMap<String, String>();
-        params.put("Content-Type", "application/json");
-        params.put("Authorization", "Token token=" + apiKey);
-        return params;
     }
 
     @Override
@@ -373,6 +239,135 @@ public class ListFragment extends Fragment implements Spinner.OnItemSelectedList
         }
     }
 
+    /**
+     * Request for delete article from server
+     * @param info info with id deleting article
+     * @param uri uri need to deleting from DB
+     * @return jsonObjectRequest
+     */
+    private JsonObjectRequest getJsonObjectRequest(final AdapterView.AdapterContextMenuInfo info, final Uri uri) {
+        return new JsonObjectRequest(Request.Method.DELETE,
+                urlJsonArray + "articles/" + info.id + ".json", null,
+                getResponseForDeleteFromDB(uri), getErrorListenerForDeleteArticles()) {
+            @Override
+            public Map<String, String> getHeaders() throws AuthFailureError {
+                return getStringStringMap();
+            }
+        };
+    }
+
+    /**
+     * Receive all articles from server and add to DB for cash
+     */
+    private void request() {
+        getActivity().getContentResolver().delete(CONTENT_URI_ARTICLES, null, null);
+
+        StringRequest req = new StringRequest(urlJsonArray + "articles.json",
+                getResponseForReceiveArticlesFormServer(), getErrorListener()) {
+            @Override
+            public Map<String, String> getHeaders() throws AuthFailureError {
+                return getStringStringMap();
+            }
+        };
+
+        AppController.getInstance().addToRequestQueue(req);
+    }
+
+    /**
+     * Response for deleting from DB
+     * @return
+     */
+    private Response.ErrorListener getErrorListenerForDeleteArticles() {
+        return new Response.ErrorListener() {
+
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Toast.makeText(getActivity(), getResources().getString(R.string.can_not_delete), Toast.LENGTH_SHORT).show();
+                VolleyLog.e("Error: ", error.getMessage());
+
+            }
+        };
+    }
+
+    /**
+     * error listener for requests
+     * @return
+     */
+    private Response.ErrorListener getErrorListener() {
+        return new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                VolleyLog.e("Error: ", error.getMessage());
+            }
+        };
+    }
+
+    /**
+     * Response listener for receive article from server
+     */
+    private Response.Listener<String> getResponseForReceiveArticlesFormServer() {
+        return new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                try {
+                    JSONObject jsonObject = new JSONObject(response);
+                    JSONArray jsonArrays = jsonObject.getJSONArray("articles");
+                    for (int i = 0; i < jsonArrays.length(); i++) {
+
+                        JSONObject articles = (JSONObject) jsonArrays.get(i);
+
+                        int id = articles.getInt("id");
+                        String title = articles.getString("title");
+                        String description = articles.getString("description");
+                        int category_id = articles.getInt("category_id");
+                        boolean own = articles.getBoolean("own");
+
+                        ContentValues values = new ContentValues();
+                        values.put(COLUMN_ID, id);
+                        values.put(COLUMN_TITLE, title);
+                        values.put(ARTICLES_COLUMN_DESCRIPTION, description);
+                        values.put(ARTICLES_COLUMN_CATEGORY_ID, category_id);
+                        values.put(ARTICLES_COLUMN_OWN, own ? 1 : 0);
+
+                        getActivity().getContentResolver().insert(CONTENT_URI_ARTICLES, values);
+                    }
+                    VolleyLog.v("Response:%n %s", response);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        };
+    }
+
+    /**
+     * resonce listener for delete selected article from DB
+     * @param uri Uri for delete article
+     * @return
+     */
+    private Response.Listener<JSONObject> getResponseForDeleteFromDB(final Uri uri) {
+        return new Response.Listener<JSONObject>() {
+            @Override
+            public void onResponse(JSONObject response) {
+                VolleyLog.v("Response:%n %s", response);
+                getActivity().getContentResolver().delete(uri, null, null);
+            }
+        };
+    }
+
+    /**
+     * Set hash map for requests
+     * @return
+     */
+    private Map<String, String> getStringStringMap() {
+        Map<String, String> params = new HashMap<String, String>();
+        params.put("Content-Type", "application/json");
+        params.put("Authorization", "Token token=" + apiKey);
+        return params;
+    }
+
+    /**
+     * initialize filter for LiseView
+     */
     private void initFilter() {
 
         List<String> selectionArgs = new ArrayList<>();
@@ -410,201 +405,28 @@ public class ListFragment extends Fragment implements Spinner.OnItemSelectedList
 
         getLoaderManager().restartLoader(ARTICLES_LOADER, args, this);
     }
-}
-/*
-        JsonArrayRequest req = new JsonArrayRequest(urlJsonArry,
-                new Response.Listener<JSONArray>() {
-                    @Override
-                    public void onResponse(JSONArray response) {
-                        Log.d(TAG, response.toString());
-
-                        try {
-                            // Parsing json array response
-                            // loop through each json object
-                            jsonResponse = "";
-                            for (int i = 0; i < response.length(); i++) {
-
-                                JSONObject person = (JSONObject) response
-                                        .get(i);
-
-                                String name = person.getString("name");
-                                String email = person.getString("email");
-                                JSONObject phone = person
-                                        .getJSONObject("phone");
-                                String home = phone.getString("home");
-                                String mobile = phone.getString("mobile");
-
-                                jsonResponse += "Name: " + name + "\n\n";
-                                jsonResponse += "Email: " + email + "\n\n";
-                                jsonResponse += "Home: " + home + "\n\n";
-                                jsonResponse += "Mobile: " + mobile + "\n\n\n";
-
-                            }
-
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                            Toast.makeText(getActivity().getApplicationContext(),
-                                    "Error: " + e.getMessage(),
-                                    Toast.LENGTH_LONG).show();
-                        }
-                    }
-                }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                VolleyLog.d(TAG, "Error: " + error.getMessage());
-                Toast.makeText(getActivity().getApplicationContext(),
-                        error.getMessage(), Toast.LENGTH_SHORT).show();
-
-            }
-        });
-
-        // Adding request to request queue
-        AppController.getInstance().addToRequestQueue(req);
-
-    }
-}
-
-  /*      implements
-        CheckBox.OnClickListener, ListView.OnItemClickListener,
-        Spinner.OnItemSelectedListener,
-        ExpandableListView.OnGroupClickListener, ISetCurrentItem {
-
-
-    private ExpandableListView expandableListView;
-    private ListView defaultListView;
-    private Spinner mSpinner;
-    private         ExpListAdapter adapter;
-    private         ListAdapter mListAdapter;
-    private         ArrayList<ArrayList<ItemContainer>> groups;
-    private         TextView mTextView;
-    private         CheckBox checkBoxFavorite;
-
-    public ListFragment() {
-    }
-
-
-    @Override
-    public void onCreateContextMenu(ContextMenu menu, View v,
-                                    ContextMenu.ContextMenuInfo menuInfo) {
-
-        super.onCreateContextMenu(menu, v, menuInfo);
-        MenuInflater inflater = getActivity().getMenuInflater();
-        inflater.inflate(R.menu.menu_main, menu);
-    }
-
-    @Override
-    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-        switch (parent.getId()) {
-            case R.id.list_spinner:
-                if (position == 1) {
-                    defaultListView.setVisibility(View.VISIBLE);
-                    expandableListView.setVisibility(View.GONE);
-                } else {
-                    defaultListView.setVisibility(View.GONE);
-                    expandableListView.setVisibility(View.VISIBLE);
-                }
-                break;
-        }
-    }
-
-    @Override
-    public boolean onContextItemSelected(MenuItem item) {
-        ExpandableListView.ExpandableListContextMenuInfo info = (ExpandableListView.ExpandableListContextMenuInfo)item.getMenuInfo();
-        int groupPos = ExpandableListView.getPackedPositionGroup(info.packedPosition);
-        int childPos = ExpandableListView.getPackedPositionChild(info.packedPosition);
-        ItemContainer itemContainer =(ItemContainer) this.adapter.getChild(groupPos, childPos);
-        //ItemContainer itemContainer1Default=(ItemContainer)this.mListAdapter
-        adapter.deleteExpandableElement(itemContainer);
-        adapter.notifyDataSetChanged();
-        //String[] menuItems = getResources().getStringArray(R.array.menu);
-        //String menuItemName = menuItems[menuItemIndex];
-        //String listItemName = Countries[info.position];
-
-        //TextView text = (TextView)findViewById(R.id.footer);
-        //text.setText(String.format("Selected %s for item %s", menuItemName, listItemName));
-        return true;
-    }
-
-
-
-    @Override
-    public void setCurrentItem(int currentItem) {
-        defaultListView.setSelection(currentItem);
-        for (int i=0;i<groups.size();i++) {
-            if (adapter.getOffset(i)>currentItem) {
-                expandableListView.setSelectedChild(i - 1, currentItem - adapter.getOffset(i-1),false);
-                break;
-            }
-        }
-    }
-
-
     @Override
     public boolean onChildClick(ExpandableListView parent, View v, int groupPosition, int childPosition, long id) {
-        IConnectFragmentWithActivity listener = (IConnectFragmentWithActivity) getActivity();
-        int off= adapter.getOffset(groupPosition);
-        int pos=off+childPosition;
-        listener.onItemSelected(pos);
-
-        CheckBox checkBox=(CheckBox)v.findViewById(R.id.checkFavorite);
-        checkBox.setChecked(!checkBox.isChecked());
-
         return false;
     }
 
     @Override
-    public boolean onGroupClick(ExpandableListView parent, View v, int groupPosition, long id) {
-        IConnectFragmentWithActivity listener = (IConnectFragmentWithActivity) getActivity();
-        int off= adapter.getOffset(groupPosition);
-        listener.onItemSelected(off);
-        return false;
-    }
-    @Override
-    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        Log.d("mylog", "itemClick: position = " + position + ", id = "
-                + id);
-
-        IConnectFragmentWithActivity listener = (IConnectFragmentWithActivity) getActivity();
-        int off = position;
-        listener.onItemSelected(off);
+    public void onNothingSelected(AdapterView<?> parent) {
     }
 
     @Override
-    public void onClick(View v) {
-        switch (v.getId()){
-            case R.id.filter_favorite:
-            adapter.checkFavorite(((CheckBox) v).isChecked());
-                ICheckFavorite iCheckFavorite= (ICheckFavorite) mListAdapter;
-                iCheckFavorite.checkFavorite(((CheckBox) v).isChecked());
-                break;
-        }
-
+    public void deleteArticleItem(ArticleItem articleItem) {
 
     }
 
     @Override
-    public void onNothingSelected(AdapterView<?> parent) {}
+    public void updateArticleItem(ArticleItem articleItem) {
 
-
-    private int getIdResource(int counter) {
-        switch (counter){
-            case 0: return R.drawable.applepie;
-            case 1: return R.drawable.bananabread;
-            case 2: return R.drawable.cupcake;
-            case 3: return R.drawable.donut;
-            case 4: return R.drawable.eclair;
-            case 5: return R.drawable.froyo;
-            case 6: return R.drawable.gingerbread;
-            case 7: return R.drawable.honeycomb;
-            case 8: return R.drawable.icecreamsandwich;
-            case 9: return R.drawable.jellybean;
-            case 10: return R.drawable.kitkat;
-            case 11: return R.drawable.lollipop;
-            case 12: return R.drawable.lollipop;
-            default: return R.drawable.abc_btn_default_mtrl_shape;
-        }
     }
 
+    @Override
+    public void addArticleItem(Uri articleItem) {
+
+    }
 
 }
-*/
