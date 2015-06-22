@@ -14,6 +14,7 @@
     <string name="can_not_edit">You can\'t edit</string>
     <string name="delete_article">Delete article</string>
     <string name="can_not_delete">Can not delete the foreign article</string>
+    <string name="select_picture">Select Picture</string>
 
 
     <string-array name="spinner_values">

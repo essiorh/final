@@ -55,10 +55,12 @@ import static com.example.ilia.final_exercise.database.AppContentProvider.CONTEN
 import static com.example.ilia.final_exercise.database.AppSQLiteOpenHelper.ARTICLES_COLUMN_CATEGORY_ID;
 import static com.example.ilia.final_exercise.database.AppSQLiteOpenHelper.ARTICLES_COLUMN_DESCRIPTION;
 import static com.example.ilia.final_exercise.database.AppSQLiteOpenHelper.ARTICLES_COLUMN_OWN;
+import static com.example.ilia.final_exercise.database.AppSQLiteOpenHelper.ARTICLES_COLUMN_PHOTO;
 import static com.example.ilia.final_exercise.database.AppSQLiteOpenHelper.ARTICLES_COLUMN_PUBLISHED;
 import static com.example.ilia.final_exercise.database.AppSQLiteOpenHelper.ARTICLES_COLUMN_UPDATE_AT;
 import static com.example.ilia.final_exercise.database.AppSQLiteOpenHelper.COLUMN_ID;
 import static com.example.ilia.final_exercise.database.AppSQLiteOpenHelper.COLUMN_TITLE;
+import static com.example.ilia.final_exercise.database.AppSQLiteOpenHelper.TABLE_ARTICLES;
 
 /**
  * Created by ilia on 08.06.15.
@@ -121,7 +123,7 @@ public class ListFragment extends Fragment implements Spinner.OnItemSelectedList
         customListView.setAdapter(cursorAdapter);
 
         //receive all articles from server and add to DB for cash
-        request();
+        receiveArticlesFromServer();
         mSpinner.setOnItemSelectedListener(this);
 
         customListView.setOnItemClickListener(this);
@@ -231,7 +233,7 @@ public class ListFragment extends Fragment implements Spinner.OnItemSelectedList
                 break;
             case R.id.refresh:
                 mEitTextFilter.setText("");
-                request();
+                receiveArticlesFromServer();
                 break;
             case R.id.start_filter:
                 initFilter();
@@ -259,7 +261,7 @@ public class ListFragment extends Fragment implements Spinner.OnItemSelectedList
     /**
      * Receive all articles from server and add to DB for cash
      */
-    private void request() {
+    private void receiveArticlesFromServer() {
         getActivity().getContentResolver().delete(CONTENT_URI_ARTICLES, null, null);
 
         StringRequest req = new StringRequest(urlJsonArray + "articles.json",
@@ -311,16 +313,25 @@ public class ListFragment extends Fragment implements Spinner.OnItemSelectedList
             public void onResponse(String response) {
                 try {
                     JSONObject jsonObject = new JSONObject(response);
-                    JSONArray jsonArrays = jsonObject.getJSONArray("articles");
+                    JSONArray jsonArrays = jsonObject.getJSONArray(TABLE_ARTICLES);
                     for (int i = 0; i < jsonArrays.length(); i++) {
 
                         JSONObject articles = (JSONObject) jsonArrays.get(i);
 
                         int id = articles.getInt("id");
-                        String title = articles.getString("title");
-                        String description = articles.getString("description");
-                        int category_id = articles.getInt("category_id");
-                        boolean own = articles.getBoolean("own");
+                        String title = articles.getString(COLUMN_TITLE);
+                        String description = articles.getString(ARTICLES_COLUMN_DESCRIPTION);
+                        int category_id = articles.getInt(ARTICLES_COLUMN_CATEGORY_ID);
+                        boolean own = articles.getBoolean(ARTICLES_COLUMN_OWN);
+                        boolean isPhotoExists=articles.isNull(ARTICLES_COLUMN_PHOTO);
+                        JSONObject jsonPhoto=null;
+                        String uri="";
+
+                        if (!isPhotoExists) {
+                            jsonPhoto = articles.getJSONObject(ARTICLES_COLUMN_PHOTO);
+                            uri = jsonPhoto.getString("url");
+                        }
+
 
                         ContentValues values = new ContentValues();
                         values.put(COLUMN_ID, id);
@@ -328,6 +339,7 @@ public class ListFragment extends Fragment implements Spinner.OnItemSelectedList
                         values.put(ARTICLES_COLUMN_DESCRIPTION, description);
                         values.put(ARTICLES_COLUMN_CATEGORY_ID, category_id);
                         values.put(ARTICLES_COLUMN_OWN, own ? 1 : 0);
+                        values.put(ARTICLES_COLUMN_PHOTO,uri);
 
                         getActivity().getContentResolver().insert(CONTENT_URI_ARTICLES, values);
                     }

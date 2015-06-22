@@ -54,7 +54,7 @@ public class AppContentProvider extends ContentProvider {
 
     @Override
     public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
-        // Using SQLiteQueryBuilder instead of query() method
+        // Usng SQLiteQueryBuilder instead of query() method
         SQLiteQueryBuilder queryBuilder = new SQLiteQueryBuilder();
 
         // Set the table
@@ -133,29 +133,19 @@ public class AppContentProvider extends ContentProvider {
 
     @Override
     public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
-        int uriType = URI_MATCHER.match(uri);
-        SQLiteDatabase sqlDB = dbHelper.getWritableDatabase();
-        int rowsDeleted = 0;
-        switch (uriType) {
-            case CODE_ALL_ARTICLES:
-                rowsDeleted = sqlDB.delete(TABLE_ARTICLES, selection,
-                        selectionArgs);
-                break;
-            case CODE_ONE_ARTICLE:
-                String id = uri.getLastPathSegment();
+        /*String table = parseUri(uri);
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        int result = db.update(table, values, selection, selectionArgs);
 
-                rowsDeleted = sqlDB.delete(TABLE_ARTICLES,
-                        COLUMN_ID + "=" + id
-                                + " and " + selection,
-                        selectionArgs);
-
-                break;
-            default:
-                throw new IllegalArgumentException("Unknown URI: " + uri);
-        }
         getContext().getContentResolver().notifyChange(uri, null);
-        return rowsDeleted;
+        return result;*/
+        return 0;
     }
+
+    /*private String parseUri(Uri uri) {
+        return parseUri(URI_MATCHER.match(uri));
+    }*/
+
     public static String[] combine(String[] a, String[] b) {
         int length = a.length + b.length;
         String[] result = new String[length];

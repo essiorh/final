@@ -70,7 +70,7 @@ public class ArticleItem {
         //int creatAtColId = c.getColumnIndexOrThrow(ARTICLES_COLUMN_CREATE_AT);
         //int updateAtColId = c.getColumnIndexOrThrow(ARTICLES_COLUMN_UPDATE_AT);
         int ownColId = c.getColumnIndex(ARTICLES_COLUMN_OWN);
-        //int photoColId = c.getColumnIndexOrThrow(ARTICLES_COLUMN_PHOTO);
+        int photoColId = c.getColumnIndexOrThrow(ARTICLES_COLUMN_PHOTO);
 
         return new ArticleItem(
                 c.getInt(idColId),
@@ -84,8 +84,7 @@ public class ArticleItem {
                 //c.getString(updateAtColId),
                 "",
                 c.getInt(ownColId) == 1,
-                //new URL(c.getString(photoColId)));
-                "");
+                c.getString(photoColId));
     }
 
 
