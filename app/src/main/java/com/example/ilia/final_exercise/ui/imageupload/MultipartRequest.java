@@ -1,4 +1,4 @@
-package com.example.ilia.final_exercise.imageupload;
+package com.example.ilia.final_exercise.ui.imageupload;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;

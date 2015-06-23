@@ -1,7 +1,6 @@
-package com.example.ilia.final_exercise.database;
+package com.example.ilia.final_exercise.data.model;
 
 import android.content.ContentProvider;
-import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.UriMatcher;
@@ -11,17 +10,12 @@ import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
 import android.text.TextUtils;
 
-import java.util.Arrays;
-import java.util.HashSet;
-
-import static com.example.ilia.final_exercise.database.AppSQLiteOpenHelper.*;
-
 public class AppContentProvider extends ContentProvider {
 
     private static final String AUTHORITY = "com.app.content_provider";
 
-    public static final Uri CONTENT_URI_ARTICLES = Uri.parse("content://" + AUTHORITY + "/" + TABLE_ARTICLES);
-    public static final Uri CONTENT_URI_CATEGORIES = Uri.parse("content://" + AUTHORITY + "/" + TABLE_CATEGORIES);
+    public static final Uri CONTENT_URI_ARTICLES = Uri.parse("content://" + AUTHORITY + "/" + AppSQLiteOpenHelper.TABLE_ARTICLES);
+    public static final Uri CONTENT_URI_CATEGORIES = Uri.parse("content://" + AUTHORITY + "/" + AppSQLiteOpenHelper.TABLE_CATEGORIES);
 
     // used for the UriMacher
     private static final int CODE_ONE_ARTICLE = 0;
@@ -31,9 +25,9 @@ public class AppContentProvider extends ContentProvider {
     private static final UriMatcher URI_MATCHER = new UriMatcher(UriMatcher.NO_MATCH);
 
     static {
-        URI_MATCHER.addURI(AUTHORITY, TABLE_ARTICLES+"/#", CODE_ONE_ARTICLE);
-        URI_MATCHER.addURI(AUTHORITY, TABLE_ARTICLES, CODE_ALL_ARTICLES);
-        URI_MATCHER.addURI(AUTHORITY, TABLE_CATEGORIES, CODE_CATEGORIES);
+        URI_MATCHER.addURI(AUTHORITY, AppSQLiteOpenHelper.TABLE_ARTICLES+"/#", CODE_ONE_ARTICLE);
+        URI_MATCHER.addURI(AUTHORITY, AppSQLiteOpenHelper.TABLE_ARTICLES, CODE_ALL_ARTICLES);
+        URI_MATCHER.addURI(AUTHORITY, AppSQLiteOpenHelper.TABLE_CATEGORIES, CODE_CATEGORIES);
     }
 
     // database
@@ -58,14 +52,14 @@ public class AppContentProvider extends ContentProvider {
         SQLiteQueryBuilder queryBuilder = new SQLiteQueryBuilder();
 
         // Set the table
-        queryBuilder.setTables(TABLE_ARTICLES);
+        queryBuilder.setTables(AppSQLiteOpenHelper.TABLE_ARTICLES);
         int uriType = URI_MATCHER.match(uri);
         switch (uriType) {
             case CODE_ALL_ARTICLES:
                 break;
             case CODE_ONE_ARTICLE:
                 // adding the ID to the original query
-                queryBuilder.appendWhere(COLUMN_ID + "="
+                queryBuilder.appendWhere(AppSQLiteOpenHelper.COLUMN_ID + "="
                         + uri.getLastPathSegment());
                 break;
             default:
@@ -90,13 +84,13 @@ public class AppContentProvider extends ContentProvider {
         long id = 0;
         switch (uriType) {
             case CODE_ALL_ARTICLES:
-                id = sqlDB.insert(TABLE_ARTICLES, null, values);
+                id = sqlDB.insert(AppSQLiteOpenHelper.TABLE_ARTICLES, null, values);
                 break;
             default:
                 throw new IllegalArgumentException("Unknown URI: " + uri);
         }
         getContext().getContentResolver().notifyChange(uri, null);
-        return Uri.parse(TABLE_ARTICLES + "/" + id);
+        return Uri.parse(AppSQLiteOpenHelper.TABLE_ARTICLES + "/" + id);
 
     }
 
@@ -107,19 +101,19 @@ public class AppContentProvider extends ContentProvider {
         int rowsDeleted = 0;
         switch (uriType) {
             case CODE_ALL_ARTICLES:
-                rowsDeleted = sqlDB.delete(TABLE_ARTICLES, selection,
+                rowsDeleted = sqlDB.delete(AppSQLiteOpenHelper.TABLE_ARTICLES, selection,
                         selectionArgs);
                 break;
             case CODE_ONE_ARTICLE:
                 String id = uri.getLastPathSegment();
 
                 if (TextUtils.isEmpty(selection)) {
-                    rowsDeleted = sqlDB.delete(TABLE_ARTICLES,
-                            COLUMN_ID + "= ?",
+                    rowsDeleted = sqlDB.delete(AppSQLiteOpenHelper.TABLE_ARTICLES,
+                            AppSQLiteOpenHelper.COLUMN_ID + "= ?",
                             new String[]{id});
                 } else {
-                    rowsDeleted = sqlDB.delete(TABLE_ARTICLES,
-                            COLUMN_ID + "= ? "
+                    rowsDeleted = sqlDB.delete(AppSQLiteOpenHelper.TABLE_ARTICLES,
+                            AppSQLiteOpenHelper.COLUMN_ID + "= ? "
                                     + " and " + selection,
                             combine( new String[]{id} , selectionArgs));
                 }

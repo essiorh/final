@@ -1,4 +1,4 @@
-package com.example.ilia.final_exercise.fragments;
+package com.example.ilia.final_exercise.ui.fragments;
 
 import android.annotation.TargetApi;
 import android.app.ProgressDialog;
@@ -37,14 +37,13 @@ import com.android.volley.VolleyLog;
 import com.android.volley.toolbox.ImageRequest;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
-import com.example.ilia.final_exercise.AppController;
+import com.example.ilia.final_exercise.AppControllerMy;
 import com.example.ilia.final_exercise.R;
-import com.example.ilia.final_exercise.database.AppSQLiteOpenHelper;
-import com.example.ilia.final_exercise.database.ArticleItem;
-import com.example.ilia.final_exercise.database.GroupItem;
-import com.example.ilia.final_exercise.imageupload.MultipartRequest;
-import com.example.ilia.final_exercise.interfaces.IClickListener;
-import com.example.ilia.final_exercise.interfaces.IStateItemChange;
+import com.example.ilia.final_exercise.data.containers.ArticleItem;
+import com.example.ilia.final_exercise.data.containers.GroupItem;
+import com.example.ilia.final_exercise.ui.imageupload.MultipartRequest;
+import com.example.ilia.final_exercise.ui.interfaces.IClickListener;
+import com.example.ilia.final_exercise.ui.interfaces.IStateItemChange;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -57,8 +56,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.example.ilia.final_exercise.database.AppContentProvider.*;
-import static com.example.ilia.final_exercise.database.AppSQLiteOpenHelper.*;
+import static com.example.ilia.final_exercise.data.model.AppContentProvider.*;
+import static com.example.ilia.final_exercise.data.model.AppSQLiteOpenHelper.*;
 
 /**
  * Created by ilia on 16.06.15.
@@ -217,7 +216,7 @@ public class ArticleFragment extends Fragment implements IClickListener, View.On
         progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
         progressDialog.setMax(100);
         progressDialog.show();
-        AppController.getInstance().addToRequestQueue(req);
+        AppControllerMy.getInstance().addToRequestQueue(req);
     }
 
     @TargetApi(Build.VERSION_CODES.KITKAT)
@@ -403,7 +402,7 @@ public class ArticleFragment extends Fragment implements IClickListener, View.On
                 return params;
             }
         };
-        AppController.getInstance().addToRequestQueue(req);
+        AppControllerMy.getInstance().addToRequestQueue(req);
     }
 
     /**
@@ -572,7 +571,7 @@ public class ArticleFragment extends Fragment implements IClickListener, View.On
                 return params;
             }
         };
-        AppController.getInstance().addToRequestQueue(req);
+        AppControllerMy.getInstance().addToRequestQueue(req);
     }
 
     private void editArticleIntoServer() {
@@ -627,7 +626,7 @@ public class ArticleFragment extends Fragment implements IClickListener, View.On
                 return params;
             }
         };
-        AppController.getInstance().addToRequestQueue(req);
+        AppControllerMy.getInstance().addToRequestQueue(req);
         addPhotoToArticleOnServer();
     }
 
@@ -686,7 +685,7 @@ public class ArticleFragment extends Fragment implements IClickListener, View.On
                 return params;
             }
         };
-        AppController.getInstance().addToRequestQueue(req);
+        AppControllerMy.getInstance().addToRequestQueue(req);
     }
 
     private void setFieldsTomArticleView() {
@@ -722,7 +721,7 @@ public class ArticleFragment extends Fragment implements IClickListener, View.On
                         public void onErrorResponse(VolleyError error) {
                         }
                     });
-            AppController.getInstance().addToRequestQueue(request);
+            AppControllerMy.getInstance().addToRequestQueue(request);
         }catch (Exception e){
             Log.d("test", e.getMessage());
             e.printStackTrace();

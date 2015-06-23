@@ -1,14 +1,14 @@
-package com.example.ilia.final_exercise.activities;
+package com.example.ilia.final_exercise.ui.activities;
 
 import android.net.Uri;
 import android.os.Bundle;
 
 import com.example.ilia.final_exercise.R;
-import com.example.ilia.final_exercise.database.ArticleItem;
-import com.example.ilia.final_exercise.fragments.ArticleFragment;
-import com.example.ilia.final_exercise.fragments.ListFragment;
-import com.example.ilia.final_exercise.interfaces.IClickListener;
-import com.example.ilia.final_exercise.interfaces.IStateItemChange;
+import com.example.ilia.final_exercise.data.containers.ArticleItem;
+import com.example.ilia.final_exercise.ui.fragments.ArticleFragment;
+import com.example.ilia.final_exercise.ui.fragments.ListFragment;
+import com.example.ilia.final_exercise.ui.interfaces.IClickListener;
+import com.example.ilia.final_exercise.ui.interfaces.IStateItemChange;
 
 
 public class MainActivity extends BaseActivity {

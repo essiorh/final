@@ -1,4 +1,4 @@
-package com.example.ilia.final_exercise.database;
+package com.example.ilia.final_exercise.data.model;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;

@@ -1,4 +1,4 @@
-package com.example.ilia.final_exercise.adapters;
+package com.example.ilia.final_exercise.ui.adapters;
 
 import android.content.Context;
 import android.database.Cursor;
@@ -9,13 +9,13 @@ import android.widget.CursorTreeAdapter;
 import android.widget.TextView;
 
 import com.example.ilia.final_exercise.R;
-import com.example.ilia.final_exercise.interfaces.IActivityAdapterInteraction;
+import com.example.ilia.final_exercise.ui.interfaces.IActivityAdapterInteraction;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.example.ilia.final_exercise.database.AppSQLiteOpenHelper.COLUMN_ID;
-import static com.example.ilia.final_exercise.database.AppSQLiteOpenHelper.COLUMN_TITLE;
+import static com.example.ilia.final_exercise.data.model.AppSQLiteOpenHelper.COLUMN_ID;
+import static com.example.ilia.final_exercise.data.model.AppSQLiteOpenHelper.COLUMN_TITLE;
 
 /**
  * Created by ilia on 16.06.15.

@@ -1,8 +1,6 @@
-package com.example.ilia.final_exercise.interfaces;
+package com.example.ilia.final_exercise.ui.interfaces;
 
-import android.net.Uri;
-
-import com.example.ilia.final_exercise.database.ArticleItem;
+import com.example.ilia.final_exercise.data.containers.ArticleItem;
 
 /**
  * Created by ilia on 16.06.15.

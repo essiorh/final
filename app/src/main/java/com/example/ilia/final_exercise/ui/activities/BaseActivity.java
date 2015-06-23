@@ -1,11 +1,11 @@
-package com.example.ilia.final_exercise.activities;
+package com.example.ilia.final_exercise.ui.activities;
 
 import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
 
-import com.example.ilia.final_exercise.interfaces.IClickListener;
-import com.example.ilia.final_exercise.interfaces.IStateItemChange;
-import com.example.ilia.final_exercise.database.ArticleItem;
+import com.example.ilia.final_exercise.ui.interfaces.IClickListener;
+import com.example.ilia.final_exercise.ui.interfaces.IStateItemChange;
+import com.example.ilia.final_exercise.data.containers.ArticleItem;
 
 /**
  * Created by ilia on 16.06.15.

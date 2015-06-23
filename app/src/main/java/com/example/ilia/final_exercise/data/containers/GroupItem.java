@@ -1,9 +1,9 @@
-package com.example.ilia.final_exercise.database;
+package com.example.ilia.final_exercise.data.containers;
 
 import android.content.ContentValues;
 import android.database.Cursor;
 
-import static com.example.ilia.final_exercise.database.AppSQLiteOpenHelper.*;
+import static com.example.ilia.final_exercise.data.model.AppSQLiteOpenHelper.*;
 
 /**
  * Created by ilia on 16.06.15.

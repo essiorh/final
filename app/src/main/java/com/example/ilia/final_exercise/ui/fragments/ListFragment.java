@@ -1,4 +1,4 @@
-package com.example.ilia.final_exercise.fragments;
+package com.example.ilia.final_exercise.ui.fragments;
 
 import android.content.ContentValues;
 import android.database.Cursor;
@@ -6,7 +6,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
-import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.text.TextUtils;
 import android.view.ContextMenu;
@@ -34,15 +33,14 @@ import com.android.volley.VolleyError;
 import com.android.volley.VolleyLog;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
-import com.example.ilia.final_exercise.AppController;
+import com.example.ilia.final_exercise.AppControllerMy;
 import com.example.ilia.final_exercise.R;
-import com.example.ilia.final_exercise.adapters.ListExpandableAdapter;
-import com.example.ilia.final_exercise.database.AppContentProvider;
-import com.example.ilia.final_exercise.database.ArticleItem;
-import com.example.ilia.final_exercise.database.GroupItem;
-import com.example.ilia.final_exercise.interfaces.IActivityAdapterInteraction;
-import com.example.ilia.final_exercise.interfaces.IClickListener;
-import com.example.ilia.final_exercise.interfaces.IStateItemChange;
+import com.example.ilia.final_exercise.data.containers.ArticleItem;
+import com.example.ilia.final_exercise.data.containers.GroupItem;
+import com.example.ilia.final_exercise.ui.adapters.ListExpandableAdapter;
+import com.example.ilia.final_exercise.ui.interfaces.IActivityAdapterInteraction;
+import com.example.ilia.final_exercise.ui.interfaces.IClickListener;
+import com.example.ilia.final_exercise.ui.interfaces.IStateItemChange;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -53,16 +51,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.example.ilia.final_exercise.database.AppContentProvider.CONTENT_URI_ARTICLES;
-import static com.example.ilia.final_exercise.database.AppSQLiteOpenHelper.ARTICLES_COLUMN_CATEGORY_ID;
-import static com.example.ilia.final_exercise.database.AppSQLiteOpenHelper.ARTICLES_COLUMN_DESCRIPTION;
-import static com.example.ilia.final_exercise.database.AppSQLiteOpenHelper.ARTICLES_COLUMN_OWN;
-import static com.example.ilia.final_exercise.database.AppSQLiteOpenHelper.ARTICLES_COLUMN_PHOTO;
-import static com.example.ilia.final_exercise.database.AppSQLiteOpenHelper.ARTICLES_COLUMN_PUBLISHED;
-import static com.example.ilia.final_exercise.database.AppSQLiteOpenHelper.ARTICLES_COLUMN_UPDATE_AT;
-import static com.example.ilia.final_exercise.database.AppSQLiteOpenHelper.COLUMN_ID;
-import static com.example.ilia.final_exercise.database.AppSQLiteOpenHelper.COLUMN_TITLE;
-import static com.example.ilia.final_exercise.database.AppSQLiteOpenHelper.TABLE_ARTICLES;
+import static com.example.ilia.final_exercise.data.model.AppContentProvider.CONTENT_URI_ARTICLES;
+import static com.example.ilia.final_exercise.data.model.AppSQLiteOpenHelper.ARTICLES_COLUMN_CATEGORY_ID;
+import static com.example.ilia.final_exercise.data.model.AppSQLiteOpenHelper.ARTICLES_COLUMN_DESCRIPTION;
+import static com.example.ilia.final_exercise.data.model.AppSQLiteOpenHelper.ARTICLES_COLUMN_OWN;
+import static com.example.ilia.final_exercise.data.model.AppSQLiteOpenHelper.ARTICLES_COLUMN_PHOTO;
+import static com.example.ilia.final_exercise.data.model.AppSQLiteOpenHelper.ARTICLES_COLUMN_PUBLISHED;
+import static com.example.ilia.final_exercise.data.model.AppSQLiteOpenHelper.COLUMN_ID;
+import static com.example.ilia.final_exercise.data.model.AppSQLiteOpenHelper.COLUMN_TITLE;
+import static com.example.ilia.final_exercise.data.model.AppSQLiteOpenHelper.TABLE_ARTICLES;
 
 /**
  * Created by ilia on 08.06.15.
@@ -182,7 +179,7 @@ public class ListFragment extends Fragment implements Spinner.OnItemSelectedList
                     // Returns a new CursorLoader
                     return new CursorLoader(
                             getActivity(),   // Parent activity context
-                            AppContentProvider.CONTENT_URI_ARTICLES, // Table to query
+                            AppContentProviderGrisha.CONTENT_URI_ARTICLES, // Table to query
                             mProjection,     // Projection to return
                             selection,            // No selection clause
                             selectionArgs,            // No selection arguments
@@ -192,7 +189,7 @@ public class ListFragment extends Fragment implements Spinner.OnItemSelectedList
                     // Returns a new CursorLoader
                     return new CursorLoader(
                             getActivity(),   // Parent activity context
-                            AppContentProvider.CONTENT_URI_CATEGORIES_NOT_EMPTY, // Table to query
+                            AppContentProviderGrisha.CONTENT_URI_CATEGORIES_NOT_EMPTY, // Table to query
                             mCategoryProjection,     // Projection to return
                             null,            // No selection clause
                             null,            // No selection arguments
@@ -215,7 +212,7 @@ public class ListFragment extends Fragment implements Spinner.OnItemSelectedList
             // Returns a new CursorLoader
             return new CursorLoader(
                     getActivity(),   // Parent activity context
-                    AppContentProvider.CONTENT_URI_ARTICLES, // Table to query
+                    AppContentProviderGrisha.CONTENT_URI_ARTICLES, // Table to query
                     mProjection,     // Projection to return
                     selection,            // No selection clause
                     selectionArgs,            // No selection arguments
@@ -240,7 +237,7 @@ public class ListFragment extends Fragment implements Spinner.OnItemSelectedList
                 .getMenuInfo();
         final Uri uri = Uri.parse(CONTENT_URI_ARTICLES + "/" + info.id);
 
-        AppController.getInstance().addToRequestQueue(getJsonObjectRequest(info, uri));
+        AppControllerMy.getInstance().addToRequestQueue(getJsonObjectRequest(info, uri));
         return true;
     }
 
@@ -316,7 +313,7 @@ public class ListFragment extends Fragment implements Spinner.OnItemSelectedList
             }
         };
 
-        AppController.getInstance().addToRequestQueue(req);
+        AppControllerMy.getInstance().addToRequestQueue(req);
     }
 
     /**
