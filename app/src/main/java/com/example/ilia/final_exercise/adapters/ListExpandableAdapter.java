@@ -1,118 +1,91 @@
 package com.example.ilia.final_exercise.adapters;
 
 import android.content.Context;
+import android.database.Cursor;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.BaseExpandableListAdapter;
+import android.widget.CursorTreeAdapter;
 import android.widget.TextView;
 
 import com.example.ilia.final_exercise.R;
-import com.example.ilia.final_exercise.database.ArticleItem;
-import com.example.ilia.final_exercise.database.GroupItem;
+import com.example.ilia.final_exercise.interfaces.IActivityAdapterInteraction;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
+
+import static com.example.ilia.final_exercise.database.AppSQLiteOpenHelper.COLUMN_ID;
+import static com.example.ilia.final_exercise.database.AppSQLiteOpenHelper.COLUMN_TITLE;
 
 /**
  * Created by ilia on 16.06.15.
  */
-public class ListExpandableAdapter extends BaseExpandableListAdapter {
+public class ListExpandableAdapter extends CursorTreeAdapter {
 
-    private List<GroupItem> groupItemList = new ArrayList<>();
-    private List<ArticleItem> articleItemList = new ArrayList<>();
-    private List<List<ArticleItem>> arrayGroupsAndArticles=new ArrayList<>();
-    private LayoutInflater inflater;
-    private Context mContext;
+        protected final HashMap<Long, Integer> mGroupMap;
+        private LayoutInflater mInflater;
+        private IActivityAdapterInteraction mListener;
 
-    public ListExpandableAdapter(Context context,List<GroupItem> groups,List<ArticleItem> articles) {
-        mContext = context;
-        groupItemList = groups;
-        articleItemList=articles;
-        inflater= (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        connectGroupsWithArticles(groups, articles);
-    }
-
-    @Override
-    public int getGroupCount() {
-        return groupItemList.size();
-    }
-
-    @Override
-    public int getChildrenCount(int groupPosition) {
-        //добавить логику для вложености
-        return arrayGroupsAndArticles.get(groupPosition).size();
-    }
-
-    @Override
-    public Object getGroup(int groupPosition) {
-        return groupItemList.get(groupPosition);
-    }
-
-    @Override
-    public ArticleItem getChild(int groupPosition, int childPosition) {
-        //добавить логику для вложенности
-        return arrayGroupsAndArticles.get(groupPosition).get(childPosition);
-    }
-
-    @Override
-    public long getGroupId(int groupPosition) {
-        return groupPosition;
-    }
-
-    @Override
-    public long getChildId(int groupPosition, int childPosition) {
-        //добавить логику для вложенности
-        return childPosition;
-    }
-
-    @Override
-    public boolean hasStableIds() {
-        return false;
-    }
-
-    @Override
-    public View getGroupView(int groupPosition, boolean isExpanded, View convertView,
-                             ViewGroup parent) {
-
-        if (convertView == null) {
-            convertView = inflater.inflate(R.layout.group_view, null);
+        public ListExpandableAdapter(Cursor cursor, Context context, IActivityAdapterInteraction listener) {
+            super(cursor, context);
+            mInflater = LayoutInflater.from(context);
+            mGroupMap = new HashMap<Long, Integer>();
+            mListener = listener;
         }
 
-        TextView textGroup = (TextView) convertView.findViewById(R.id.textGroup);
-        textGroup.setText(groupItemList.get(groupPosition).getmTitle());
+        @Override
+        protected Cursor getChildrenCursor(Cursor groupCursor) {
+            // Given the group, we return a cursor for all the children within that
+            // group
+            int groupPos = groupCursor.getPosition();
+            long groupId = groupCursor.getLong(groupCursor
+                    .getColumnIndex(COLUMN_ID));
 
-        return convertView;
-    }
+            mGroupMap.put(groupId, groupPos);
 
-    @Override
-    public View getChildView(int groupPosition, int childPosition, boolean isLastChild,
-                             View convertView, ViewGroup parent) {
-        if (convertView == null) {
-            convertView = inflater.inflate(R.layout.child_view, null);
-        }
-        TextView textChild = (TextView) convertView.findViewById(R.id.textChild);
-        textChild.setText(arrayGroupsAndArticles.get(groupPosition).get(childPosition).getmTitle());
-
-        return convertView;
-    }
-
-    @Override
-    public boolean isChildSelectable(int groupPosition, int childPosition) {
-        return true;
-    }
-
-    private void connectGroupsWithArticles(List<GroupItem> groups, List<ArticleItem> articles) {
-        for (int i=0;i<groups.size();i++) {
-            List<ArticleItem> currentList=new ArrayList<>();
-            for (int j=0;j<articles.size();j++) {
-                if (groups.get(i).get_id()==articles.get(j).getmCategory_id()) {
-                    currentList.add(articles.get(j));
-                }
+            if (mListener != null) {
+                mListener.getChildrenCursor(groupId);
             }
-            if (currentList.size()>0) {
-                arrayGroupsAndArticles.add(currentList);
+
+            return null;
+        }
+
+        @Override
+        protected View newGroupView(Context context, Cursor cursor, boolean isExpanded, ViewGroup parent) {
+            View view = mInflater.inflate(R.layout.group_view, parent, false);
+            return view;
+        }
+
+        @Override
+        protected void bindGroupView(View view, Context context, Cursor cursor, boolean isExpanded) {
+            TextView titleTextView = (TextView) view
+                    .findViewById(R.id.textGroup);
+
+            if (titleTextView != null) {
+                titleTextView.setText(cursor.getString(cursor
+                        .getColumnIndex(COLUMN_TITLE)));
             }
         }
+
+        @Override
+        protected View newChildView(Context context, Cursor cursor, boolean isLastChild, ViewGroup parent) {
+            View view = mInflater.inflate(R.layout.child_view, parent, false);
+
+            return view;
+        }
+
+        @Override
+        protected void bindChildView(View view, Context context, Cursor cursor, boolean isLastChild) {
+            TextView titleTextView = (TextView) view
+                    .findViewById(R.id.textChild);
+
+            if (titleTextView != null) {
+                titleTextView.setText(cursor.getString(cursor
+                        .getColumnIndex(COLUMN_TITLE)));
+            }
+        }
+
+        public Map<Long, Integer> getGroupMap() {
+            return mGroupMap;
+        }
     }
-}

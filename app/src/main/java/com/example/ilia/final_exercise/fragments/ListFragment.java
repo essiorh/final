@@ -37,8 +37,10 @@ import com.android.volley.toolbox.StringRequest;
 import com.example.ilia.final_exercise.AppController;
 import com.example.ilia.final_exercise.R;
 import com.example.ilia.final_exercise.adapters.ListExpandableAdapter;
+import com.example.ilia.final_exercise.database.AppContentProvider;
 import com.example.ilia.final_exercise.database.ArticleItem;
 import com.example.ilia.final_exercise.database.GroupItem;
+import com.example.ilia.final_exercise.interfaces.IActivityAdapterInteraction;
 import com.example.ilia.final_exercise.interfaces.IClickListener;
 import com.example.ilia.final_exercise.interfaces.IStateItemChange;
 
@@ -67,9 +69,15 @@ import static com.example.ilia.final_exercise.database.AppSQLiteOpenHelper.TABLE
  */
 public class ListFragment extends Fragment implements Spinner.OnItemSelectedListener,
         ExpandableListView.OnChildClickListener, ListView.OnItemClickListener,
-        IStateItemChange, LoaderManager.LoaderCallbacks<Cursor>, Button.OnClickListener {
-    private static final String ARGS_SELECTION = "args_selection";
-    private static final String ARGS_SELECTION_ARGUMENTS = "args_selection_arguments";
+        IStateItemChange, LoaderManager.LoaderCallbacks<Cursor>, Button.OnClickListener,
+        IActivityAdapterInteraction {
+
+    private static final String ARGS_SELECTION 				= "argsSelection";
+    private static final String ARGS_SELECTION_ARGUMENTS 	= "argsSelectionArguments";
+
+    private static final String ARGS_ARTICLES_SELECTION 	= "argsArticlesSelection";
+    private static final String ARGS_ARTICLES_SELECTION_ARGUMENTS 	= "argsArticlesSelectionArguments";
+    public static final int ARTICLES_CHILD_LOADER	= 2;
     private static final int ARTICLES_LOADER = 1;
     public static final int INIT_LOADER = 0;
     private ExpandableListView expandableListView;
@@ -107,7 +115,7 @@ public class ListFragment extends Fragment implements Spinner.OnItemSelectedList
         Button addNewArticleButton = (Button) inflateView.findViewById(R.id.add_new_article);
         addNewArticleButton.setOnClickListener(this);
 
-        expandableAdapter = new ListExpandableAdapter(getActivity(), groupItemList, articleItemList);
+        expandableAdapter = new ListExpandableAdapter(null,getActivity(), this);
         expandableListView.setAdapter(expandableAdapter);
         expandableListView.setOnChildClickListener(this);
 
@@ -159,26 +167,62 @@ public class ListFragment extends Fragment implements Spinner.OnItemSelectedList
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        String[] projection;
-        CursorLoader cursorLoader;
-        String selection=null;
-        String[] selectionArgs=null;
+        String selection = null;
+        String[] selectionArgs = null;
+        /*if (id < ARTICLES_CHILD_LOADER) {
+            switch (id) {
+                case ARTICLES_LOADER:
+                    // filter items
 
-        switch (id) {
-            case INIT_LOADER:
-                break;
-            case ARTICLES_LOADER:
-                if (args!=null){
-                    selectionArgs= args.getStringArray(ARGS_SELECTION_ARGUMENTS);
-                    selection=args.getString(ARGS_SELECTION);
-                }
-        }
-        projection = new String[]{COLUMN_ID, COLUMN_TITLE, ARTICLES_COLUMN_UPDATE_AT};
+                    if (args != null) {
+                        selection = args.getString(ARGS_SELECTION);
+                        selectionArgs = args.getStringArray(ARGS_SELECTION_ARGUMENTS);
+                    }
 
-        cursorLoader = new CursorLoader(getActivity(), CONTENT_URI_ARTICLES,
-                projection, selection, selectionArgs, ARTICLES_COLUMN_UPDATE_AT);
+                    // Returns a new CursorLoader
+                    return new CursorLoader(
+                            getActivity(),   // Parent activity context
+                            AppContentProvider.CONTENT_URI_ARTICLES, // Table to query
+                            mProjection,     // Projection to return
+                            selection,            // No selection clause
+                            selectionArgs,            // No selection arguments
+                            mArticlesSortOrder             // Default sort order
+                    );
+                case CATEGORIES_LOADER:
+                    // Returns a new CursorLoader
+                    return new CursorLoader(
+                            getActivity(),   // Parent activity context
+                            AppContentProvider.CONTENT_URI_CATEGORIES_NOT_EMPTY, // Table to query
+                            mCategoryProjection,     // Projection to return
+                            null,            // No selection clause
+                            null,            // No selection arguments
+                            mCategoriesSortOrder  // Default sort order
+                    );
+                default:
+                    // An invalid id was passed in
+                    return null;
+            }
+        } else {
+            // child loaders
+            // filter items
+            String selection = null;
+            String[] selectionArgs = null;
+            if (args != null) {
+                selection = args.getString(ARGS_ARTICLES_SELECTION);
+                selectionArgs = args.getStringArray(ARGS_ARTICLES_SELECTION_ARGUMENTS);
+            }
 
-        return cursorLoader;
+            // Returns a new CursorLoader
+            return new CursorLoader(
+                    getActivity(),   // Parent activity context
+                    AppContentProvider.CONTENT_URI_ARTICLES, // Table to query
+                    mProjection,     // Projection to return
+                    selection,            // No selection clause
+                    selectionArgs,            // No selection arguments
+                    mChildArticlesSortOrder             // Default sort order
+            );
+        }*/
+        return  null;
     }
 
     @Override
@@ -441,4 +485,21 @@ public class ListFragment extends Fragment implements Spinner.OnItemSelectedList
         receiveArticlesFromServer();
     }
 
+
+
+    @Override
+    public void getChildrenCursor(long categoryId) {
+        Loader loader	= getLoaderManager().getLoader(ARTICLES_CHILD_LOADER+(int)categoryId);
+        Bundle args		= new Bundle();
+        args.putString(ARGS_ARTICLES_SELECTION , COLUMN_ID+" = ?");
+        args.putStringArray(ARGS_ARTICLES_SELECTION_ARGUMENTS, new String[]{ String.format("%d",categoryId)})
+        ;
+        if (loader != null && !loader.isReset()) {
+            getLoaderManager().restartLoader(ARTICLES_CHILD_LOADER+(int)categoryId, args,
+                    this);
+        } else {
+            getLoaderManager().initLoader(ARTICLES_CHILD_LOADER+(int)categoryId, args,
+                    this);
+        }
+    }
 }

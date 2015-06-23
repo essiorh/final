@@ -1,0 +1,46 @@
+Index: .idea/misc.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- .idea/misc.xml	(revision ea73e2d54e68d9e59d86b14472c0b55f3223017f)
++++ .idea/misc.xml	(revision )
+@@ -1,15 +1,5 @@
+ <?xml version="1.0" encoding="UTF-8"?>
+ <project version="4">
+-  <component name="EntryPointsManager">
+-    <entry_points version="2.0" />
+-  </component>
+-  <component name="MavenImportPreferences">
+-    <option name="generalSettings">
+-      <MavenGeneralSettings>
+-        <option name="mavenHome" value="Bundled (Maven 3)" />
+-      </MavenGeneralSettings>
+-    </option>
+-  </component>
+   <component name="ProjectLevelVcsManager" settingsEditedManually="false">
+     <OptionsSetting value="true" id="Add" />
+     <OptionsSetting value="true" id="Remove" />
+@@ -25,21 +15,5 @@
+   </component>
+   <component name="ProjectType">
+     <option name="id" value="Android" />
+-  </component>
+-  <component name="masterDetails">
+-    <states>
+-      <state key="ProjectJDKs.UI">
+-        <settings>
+-          <last-edited>1.8</last-edited>
+-          <splitter-proportions>
+-            <option name="proportions">
+-              <list>
+-                <option value="0.2" />
+-              </list>
+-            </option>
+-          </splitter-proportions>
+-        </settings>
+-      </state>
+-    </states>
+   </component>
+ </project>
+\ No newline at end of file
