@@ -19,282 +19,286 @@ import com.google.gson.GsonBuilder;
 import java.io.File;
 import java.util.ArrayList;
 
-import static com.example.ilia.final_exercise.data.model.AppContentProvider.*;
-import static com.example.ilia.final_exercise.data.model.OpenDBHelper.*;
+import static com.example.ilia.final_exercise.data.model.AppContentProvider.CONTENT_URI_ARTICLES;
+import static com.example.ilia.final_exercise.data.model.AppContentProvider.CONTENT_URI_CATEGORIES;
+import static com.example.ilia.final_exercise.data.model.AppContentProvider.getArticlesUri;
+import static com.example.ilia.final_exercise.data.model.OpenDBHelper.ARTICLES_PHOTO_URL;
+import static com.example.ilia.final_exercise.data.model.OpenDBHelper.COLUMN_ID;
 
 /**
  * Created by ilia on 23.06.15.
+ *
  * @author ilia
  */
 public class Requester {
 
-	private static final String SERVER = "http://editors.yozhik.sibext.ru/";
+    private static final String SERVER = "http://editors.yozhik.sibext.ru/";
 
-	public Requester() {
-	}
+    public Requester() {
+    }
 
-	public DataResponse getCategories() {
+    public DataResponse getCategories() {
 
-		RestClient restClient = new RestClient();
-		String url = getCategoriesUrl();
-		ApiResponse response = restClient.doGet(url);
-		Gson gson = new Gson();
+        RestClient restClient = new RestClient();
+        String url = getCategoriesUrl();
+        ApiResponse response = restClient.doGet(url);
+        Gson gson = new Gson();
 
-		CategoriesContainer responseContainer = deserialize(gson
-				, response
-				, CategoriesContainer.class);
+        CategoriesContainer responseContainer = deserialize(gson
+                , response
+                , CategoriesContainer.class);
 
-		if (responseContainer != null) {
+        if (responseContainer != null) {
 
-			ArrayList<Long> ids = new ArrayList<>();
-			Cursor cursor = AppController.getAppContext().getContentResolver()
-					.query(CONTENT_URI_CATEGORIES
-							, new String[]{COLUMN_ID}
-							, null
-							, null
-							, null);
-			while (cursor.moveToNext()) {
-				ids.add(cursor.getLong(cursor.getColumnIndex(COLUMN_ID)));
-			}
-			cursor.close();
+            ArrayList<Long> ids = new ArrayList<>();
+            Cursor cursor = AppController.getAppContext().getContentResolver()
+                    .query(CONTENT_URI_CATEGORIES
+                            , new String[]{COLUMN_ID}
+                            , null
+                            , null
+                            , null);
+            while (cursor.moveToNext()) {
+                ids.add(cursor.getLong(cursor.getColumnIndex(COLUMN_ID)));
+            }
+            cursor.close();
 
-			for (Category category : responseContainer.categories) {
-				ids.remove(category.getId());
+            for (Category category : responseContainer.categories) {
+                ids.remove(category.getId());
 
-				AppController.getAppContext().getContentResolver()
-						.insert(CONTENT_URI_CATEGORIES, category.buildContentValues());
-			}
+                AppController.getAppContext().getContentResolver()
+                        .insert(CONTENT_URI_CATEGORIES, category.buildContentValues());
+            }
 
-			if (ids.size() > 0) {
-				AppController.getAppContext().getContentResolver()
-						.delete(CONTENT_URI_CATEGORIES
-								, formatArrayCondition(COLUMN_ID, ids), null);
-			}
-		}
-		return new DataResponse();
-	}
+            if (ids.size() > 0) {
+                AppController.getAppContext().getContentResolver()
+                        .delete(CONTENT_URI_CATEGORIES
+                                , formatArrayCondition(COLUMN_ID, ids), null);
+            }
+        }
+        return new DataResponse();
+    }
 
 
-	public DataResponse getArticles() {
+    public DataResponse getArticles() {
 
-		RestClient restClient = new RestClient();
-		String url = getArticlesUrl();
-		ApiResponse response = restClient.doGet(url);
-		Gson gson = getGson();
-		ArticlesContainer responseContainer = deserialize(gson, response, ArticlesContainer.class);
+        RestClient restClient = new RestClient();
+        String url = getArticlesUrl();
+        ApiResponse response = restClient.doGet(url);
+        Gson gson = getGSON();
+        ArticlesContainer responseContainer = deserialize(gson, response, ArticlesContainer.class);
 
-		if (responseContainer != null && responseContainer.articles != null) {
-			ArrayList<Long> ids = new ArrayList<>();
-			Cursor cursor = AppController.getAppContext().getContentResolver()
-					.query(CONTENT_URI_ARTICLES
-							, new String[]{COLUMN_ID}, null, null, null);
+        if (responseContainer != null && responseContainer.articles != null) {
+            ArrayList<Long> ids = new ArrayList<>();
+            Cursor cursor = AppController.getAppContext().getContentResolver()
+                    .query(CONTENT_URI_ARTICLES
+                            , new String[]{COLUMN_ID}, null, null, null);
 
-			while (cursor.moveToNext()) {
-				ids.add(cursor.getLong(cursor.getColumnIndex(COLUMN_ID)));
-			}
+            while (cursor.moveToNext()) {
+                ids.add(cursor.getLong(cursor.getColumnIndex(COLUMN_ID)));
+            }
 
-			cursor.close();
+            cursor.close();
 
-			for (Article article : responseContainer.articles) {
-				ids.remove(article.getId());
+            for (Article article : responseContainer.articles) {
+                ids.remove(article.getId());
 
-				AppController.getAppContext().getContentResolver()
-						.insert(CONTENT_URI_ARTICLES,
-								article.buildContentValues());
-			}
+                AppController.getAppContext().getContentResolver()
+                        .insert(CONTENT_URI_ARTICLES,
+                                article.buildContentValues());
+            }
 
-			if (ids.size() > 0) {
-				AppController.getAppContext().getContentResolver()
-						.delete(getArticlesUri()
-								, formatArrayCondition(COLUMN_ID, ids), null);
-			}
-		}
-		return new DataResponse();
-	}
+            if (ids.size() > 0) {
+                AppController.getAppContext().getContentResolver()
+                        .delete(getArticlesUri()
+                                , formatArrayCondition(COLUMN_ID, ids), null);
+            }
+        }
+        return new DataResponse();
+    }
 
-	public DataResponse addArticle(DataRequest request) {
-		long id = -1;
-		RestClient restClient = new RestClient();
-		String url = putArticleUrl();
-		Gson gsonSerializer = new GsonBuilder().excludeFieldsWithoutExposeAnnotation()
-				.setPrettyPrinting().create();
-		String jsonContent = gsonSerializer.toJson(request.getArticle());
-		Gson gsonDeserializer = getGson();
-		ApiResponse response = restClient.doPost(url, null, jsonContent);
-		ArticleContainer responseContainer =
-				deserialize(gsonDeserializer, response, ArticleContainer.class);
+    public DataResponse addArticle(DataRequest request) {
+        long id = -1;
+        RestClient restClient = new RestClient();
+        String url = putArticleUrl();
+        Gson gsonSerializer = new GsonBuilder().excludeFieldsWithoutExposeAnnotation()
+                .setPrettyPrinting().create();
+        String jsonContent = gsonSerializer.toJson(request.getArticle());
+        Gson gsonDeserializer = getGSON();
+        ApiResponse response = restClient.doPost(url, null, jsonContent);
+        ArticleContainer responseContainer =
+                deserialize(gsonDeserializer, response, ArticleContainer.class);
 
-		if (responseContainer != null && responseContainer.article != null) {
-			id = responseContainer.article.getId();
-			AppController.getAppContext().getContentResolver()
-					.insert(CONTENT_URI_ARTICLES
-							, responseContainer.article.buildContentValues());
+        if (responseContainer != null && responseContainer.article != null) {
+            id = responseContainer.article.getId();
+            AppController.getAppContext().getContentResolver()
+                    .insert(CONTENT_URI_ARTICLES
+                            , responseContainer.article.buildContentValues());
 
-			if (!TextUtils.isEmpty(request.getAdditionalData())) {
-				addPhotoToArticle(id, request.getAdditionalData());
-			}
-		}
-		return new DataResponse(id);
-	}
+            if (!TextUtils.isEmpty(request.getAdditionalData())) {
+                addPhotoToArticle(id, request.getAdditionalData());
+            }
+        }
+        return new DataResponse(id);
+    }
 
-	public DataResponse deleteArticle(DeleteDataRequest articleId) {
+    public DataResponse deleteArticle(DeleteDataRequest articleId) {
 
-		long id = articleId.getId();
-		String url = deleteArticleUrl(id);
-		RestClient restClient = new RestClient();
-		ApiResponse response = restClient.doDelete(url);
+        long id = articleId.getId();
+        String url = deleteArticleUrl(id);
+        RestClient restClient = new RestClient();
+        ApiResponse response = restClient.doDelete(url);
 
-		if (response.getStatus() == 200) {
-			AppController.getAppContext().getContentResolver()
-					.delete(getArticlesUri(id), null, null);
-		} else {
-			return new DataResponse(-1);
-		}
-		return new DataResponse(id);
-	}
+        if (response.getStatus() == 200) {
+            AppController.getAppContext().getContentResolver()
+                    .delete(getArticlesUri(id), null, null);
+        } else {
+            return new DataResponse(-1);
+        }
+        return new DataResponse(id);
+    }
 
-	public DataResponse editArticle(DataRequest request) {
+    public DataResponse editArticle(DataRequest request) {
 
-		if (request.getArticle() == null) {
-			return new DataResponse(-1);
-		}
+        if (request.getArticle() == null) {
+            return new DataResponse(-1);
+        }
 
-		long id = request.getArticle().getId();
-		String url = editArticleUrl(id);
-		Gson gsonSerializer = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
-		String jsonContent = gsonSerializer.toJson(request.getArticle());
-		RestClient restClient = new RestClient();
-		Gson gson = getGson();
+        long id = request.getArticle().getId();
+        String url = editArticleUrl(id);
+        Gson gsonSerializer = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
+        String jsonContent = gsonSerializer.toJson(request.getArticle());
+        RestClient restClient = new RestClient();
+        Gson gson = getGSON();
 
-		ApiResponse response = restClient.doPut(url, jsonContent);
-		ArticleContainer responseContainer = deserialize(gson, response, ArticleContainer.class);
+        ApiResponse response = restClient.doPut(url, jsonContent);
+        ArticleContainer responseContainer = deserialize(gson, response, ArticleContainer.class);
 
-		if (responseContainer != null && responseContainer.article != null) {
-			id = responseContainer.article.getId();
-			AppController.getAppContext().getContentResolver()
-					.update(getArticlesUri(id)
-							, responseContainer.article.buildContentValues(), null, null);
-			if (!TextUtils.isEmpty(request.getAdditionalData())) {
-				addPhotoToArticle(id, request.getAdditionalData());
-			}
-		} else {
-			new DataResponse(-1);
-		}
-		return new DataResponse(id);
-	}
+        if (responseContainer != null && responseContainer.article != null) {
+            id = responseContainer.article.getId();
+            AppController.getAppContext().getContentResolver()
+                    .update(getArticlesUri(id)
+                            , responseContainer.article.buildContentValues(), null, null);
+            if (!TextUtils.isEmpty(request.getAdditionalData())) {
+                addPhotoToArticle(id, request.getAdditionalData());
+            }
+        } else {
+            new DataResponse(-1);
+        }
+        return new DataResponse(id);
+    }
 
-	private void addPhotoToArticle(long id, String imagePath) {
+    private void addPhotoToArticle(long id, String imagePath) {
 
-		RestClient restClient = new RestClient();
-		String url = addImageUrl(id);
-		Gson gson = new Gson();
-		Uri uri = Uri.parse(imagePath);
-		String utils = Utils.getPath(AppController.getAppContext(), uri);
-		if (utils == null) return;
-		File file = new File(utils);
-		String response = restClient.doUploadFile(url, file, "photo[image]");
-		PhotoContainer responseContainer = deserialize(gson, response, PhotoContainer.class);
+        RestClient restClient = new RestClient();
+        String url = addImageUrl(id);
+        Gson gson = new Gson();
+        Uri uri = Uri.parse(imagePath);
+        String utils = Utils.getPath(AppController.getAppContext(), uri);
+        if (utils == null) return;
+        File file = new File(utils);
+        String response = restClient.doUploadFile(url, file, "photo[image]");
+        PhotoContainer responseContainer = deserialize(gson, response, PhotoContainer.class);
 
-		if (responseContainer != null && responseContainer.photo != null) {
-			ContentValues values = new ContentValues();
-			values.put(ARTICLES_PHOTO_URL, responseContainer.photo.url);
-			AppController.getAppContext().getContentResolver()
-					.update(getArticlesUri(id)
-							, values, null, null);
-		}
-	}
+        if (responseContainer != null && responseContainer.photo != null) {
+            ContentValues values = new ContentValues();
+            values.put(ARTICLES_PHOTO_URL, responseContainer.photo.url);
+            AppController.getAppContext().getContentResolver()
+                    .update(getArticlesUri(id)
+                            , values, null, null);
+        }
+    }
 
-	@NonNull
-	private Gson getGson() {
-		return new GsonBuilder().setDateFormat("yyyy-MM-dd HH:mm:ss Z").create();
-	}
+    @NonNull
+    private Gson getGSON() {
+        return new GsonBuilder().setDateFormat("yyyy-MM-dd HH:mm:ss Z").create();
+    }
 
-	private String getCategoriesUrl() {
-		return SERVER + "categories.json";
-	}
+    private String getCategoriesUrl() {
+        return SERVER + "categories.json";
+    }
 
-	private String getArticlesUrl() {
-		return SERVER + "articles.json";
-	}
+    private String getArticlesUrl() {
+        return SERVER + "articles.json";
+    }
 
-	private String putArticleUrl() {
-		return SERVER + "articles.json";
-	}
+    private String putArticleUrl() {
+        return SERVER + "articles.json";
+    }
 
-	private String editArticleUrl(long id) {
-		return SERVER + String.format("articles/%d.json", id);
-	}
+    private String editArticleUrl(long id) {
+        return SERVER + String.format("articles/%d.json", id);
+    }
 
-	private String deleteArticleUrl(long id) {
-		return SERVER + String.format("articles/%d.json", id);
-	}
+    private String deleteArticleUrl(long id) {
+        return SERVER + String.format("articles/%d.json", id);
+    }
 
-	private String addImageUrl(long id) {
-		return SERVER + String.format("articles/%d/photos.json", id);
-	}
+    private String addImageUrl(long id) {
+        return SERVER + String.format("articles/%d/photos.json", id);
+    }
 
-	private String formatArrayCondition(String field, ArrayList<Long> ids) {
-		StringBuilder result = new StringBuilder();
+    private String formatArrayCondition(String field, ArrayList<Long> ids) {
+        StringBuilder result = new StringBuilder();
 
-		result.append(field);
-		result.append(" in (");
+        result.append(field);
+        result.append(" in (");
 
-		for (int i = 0; i < ids.size(); i++) {
-			if (i > 0) {
-				result.append(", ");
-			}
-			result.append(ids.get(i).toString());
-		}
+        for (int i = 0; i < ids.size(); i++) {
+            if (i > 0) {
+                result.append(", ");
+            }
+            result.append(ids.get(i).toString());
+        }
 
-		result.append(" ) ");
+        result.append(" ) ");
 
-		return result.toString();
-	}
+        return result.toString();
+    }
 
-	private static class CategoriesContainer {
-		public Category[] categories;
-	}
+    private <T> T deserialize(Gson gson, ApiResponse response, Class<T> classOfT) {
 
-	private static class ArticlesContainer {
-		public Article[] articles;
-	}
+        if (response != null) {
+            try {
+                return gson.fromJson(response.getInputStreamReader(), classOfT);
+            } catch (Exception e) {
+                e.printStackTrace();
+                return null;
+            }
+        }
+        return null;
+    }
 
-	private static class ArticleContainer {
-		public Article article;
-	}
+    private <T> T deserialize(Gson gson, String response, Class<T> classOfT) {
+        if (response != null) {
+            try {
+                return gson.fromJson(response, classOfT);
+            } catch (Exception e) {
+                e.printStackTrace();
+                return null;
+            }
+        }
+        return null;
+    }
 
-	private static class PhotoContainer {
-		class Photo {
-			public long id;
-			public String url;
-		}
+    private static class CategoriesContainer {
+        public Category[] categories;
+    }
 
-		public Photo photo;
-	}
+    private static class ArticlesContainer {
+        public Article[] articles;
+    }
 
-	private <T> T deserialize(Gson gson, ApiResponse response, Class<T> classOfT) {
+    private static class ArticleContainer {
+        public Article article;
+    }
 
-		if (response != null) {
-			try {
-				return gson.fromJson(response.getInputStreamReader(), classOfT);
-			} catch (Exception e) {
-				e.printStackTrace();
-				return null;
-			}
-		}
-		return null;
-	}
+    private static class PhotoContainer {
+        public Photo photo;
 
-	private <T> T deserialize(Gson gson, String response, Class<T> classOfT) {
-		if (response != null) {
-			try {
-				return gson.fromJson(response, classOfT);
-			} catch (Exception e) {
-				e.printStackTrace();
-				return null;
-			}
-		}
-		return null;
-	}
+        class Photo {
+            public long id;
+            public String url;
+        }
+    }
 }
 

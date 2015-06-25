@@ -25,7 +25,6 @@ import android.widget.Switch;
 import com.example.ilia.final_exercise.R;
 import com.example.ilia.final_exercise.data.containers.Article;
 import com.example.ilia.final_exercise.data.containers.Category;
-import com.example.ilia.final_exercise.data.model.OpenDBHelper;
 import com.example.ilia.final_exercise.ui.interfaces.IActivityArticleInteractionListener;
 import com.example.ilia.final_exercise.ui.interfaces.IArticleFragmentInteractionListener;
 import com.squareup.picasso.Picasso;
@@ -33,393 +32,398 @@ import com.squareup.picasso.Picasso;
 import java.io.IOException;
 import java.util.ArrayList;
 
-import static com.example.ilia.final_exercise.data.model.AppContentProvider.*;
-
 import static android.app.Activity.RESULT_OK;
+import static com.example.ilia.final_exercise.data.model.AppContentProvider.CONTENT_URI_CATEGORIES;
+import static com.example.ilia.final_exercise.data.model.AppContentProvider.getArticlesUri;
+import static com.example.ilia.final_exercise.data.model.OpenDBHelper.ARTICLES_CATEGORY_ID;
+import static com.example.ilia.final_exercise.data.model.OpenDBHelper.ARTICLES_CREATED;
+import static com.example.ilia.final_exercise.data.model.OpenDBHelper.ARTICLES_DESCRIPTION;
+import static com.example.ilia.final_exercise.data.model.OpenDBHelper.ARTICLES_OWN;
+import static com.example.ilia.final_exercise.data.model.OpenDBHelper.ARTICLES_PHOTO_URL;
+import static com.example.ilia.final_exercise.data.model.OpenDBHelper.ARTICLES_PUBLISHED;
+import static com.example.ilia.final_exercise.data.model.OpenDBHelper.ARTICLES_TITLE;
+import static com.example.ilia.final_exercise.data.model.OpenDBHelper.ARTICLES_UPDATED;
+import static com.example.ilia.final_exercise.data.model.OpenDBHelper.CATEGORIES_TITLE;
+import static com.example.ilia.final_exercise.data.model.OpenDBHelper.COLUMN_ID;
 
 /**
  * Created by ilia on 16.06.15.
+ *
  * @author ilia
  */
 public class ArticlesFragment extends BaseFragment implements IActivityArticleInteractionListener
-		, LoaderManager.LoaderCallbacks<Cursor> {
+        , LoaderManager.LoaderCallbacks<Cursor> {
 
-	private static final int GET_CURRENT_ARTICLE_LOADER = 1;
-	private static final int GET_CATEGORIES_LOADER = 2;
+    public static final int GET_IMAGE_REQUEST_CODE = 1;
+    private static final int GET_CURRENT_ARTICLE_LOADER = 1;
+    private static final int GET_CATEGORIES_LOADER = 2;
+    private static final String PARAM_ARTICLE_ID = "paramArticleId";
+    private static final String STATE_ARTICLE_ID = "stateArticleId";
+    private static final String STATE_ARTICLE_TITLE = "stateArticleTitle";
+    private static final String STATE_ARTICLE_DESCRIPTION = "stateArticleDescription";
+    private static final String STATE_ARTICLE_CATEGORY = "stateArticleCategory";
+    private static final String STATE_CATEGORIES = "stateCategories";
+    String[] mArticlesProjection;
+    String[] mCategoriesProjection;
+    private IArticleFragmentInteractionListener mListener;
+    private long mArticleId;
+    private String mImagePath;
+    private ArrayList<Category> mCategories;
+    private EditText mTitleEdit;
+    private EditText mDescriptionEdit;
+    private Button mViewButton;
+    private Button mEditButton;
+    private Button mSaveButton;
+    private ImageButton mAddImageButton;
 
-	public static final int GET_IMAGE_REQUEST_CODE = 1;
+    private Spinner mSpinner;
+    private Switch mIsPublishedSwitch;
+    private ImageView mImage;
+    private boolean mImageChanged;
 
-	private static final String PARAM_ARTICLE_ID = "paramArticleId";
-	private static final String STATE_ARTICLE_ID = "stateArticleId";
-	private static final String STATE_ARTICLE_TITLE = "stateArticleTitle";
-	private static final String STATE_ARTICLE_DESCRIPTION = "stateArticleDescription";
-	private static final String STATE_ARTICLE_CATEGORY = "stateArticleCategory";
-	private static final String STATE_CATEGORIES = "stateCategories";
+    public ArticlesFragment() {
+    }
 
-	private IArticleFragmentInteractionListener mListener;
-	private long mArticleId;
-	private String mImagePath;
-	private ArrayList<Category> mCategories;
-	String[] mArticlesProjection;
-	String[] mCategoriesProjection;
+    public static ArticlesFragment newInstance(long articleId) {
+        ArticlesFragment fragment = new ArticlesFragment();
+        Bundle args = new Bundle();
+        args.putLong(PARAM_ARTICLE_ID, articleId);
+        fragment.setArguments(args);
+        return fragment;
+    }
 
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        if (activity instanceof IArticleFragmentInteractionListener) {
+            mListener = (IArticleFragmentInteractionListener) activity;
+            mListener.onRegister(this);
+        } else {
+            throw new ClassCastException(activity.toString()
+                    + " must implement OnFragmentInteractionListener");
+        }
+    }
 
-	private EditText mTitleEdit;
-	private EditText mDescriptionEdit;
-	private Button mViewButton;
-	private Button mEditButton;
-	private Button mSaveButton;
-	private ImageButton mAddImageButton;
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        if (getArguments() != null) {
+            mArticleId = getArguments().getLong(PARAM_ARTICLE_ID);
+        }
+    }
 
-	private Spinner mSpinner;
-	private Switch mIsPublishedSwitch;
-	private ImageView mImage;
-	private boolean mImageChanged;
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        View view = inflater.inflate(R.layout.fragment_articles, container, false);
+        mCategories = new ArrayList<>();
+        mTitleEdit = (EditText) view.findViewById(R.id.fragment_article_edit_title);
+        mDescriptionEdit = (EditText) view.findViewById(R.id.fragment_article_edit_description);
+        mImage = (ImageView) view.findViewById(R.id.fragment_articles_image);
+        mSpinner = (Spinner) view.findViewById(R.id.fragment_article_category_spinner);
+        mSpinner.setEnabled(false);
 
-	public static ArticlesFragment newInstance(long articleId) {
-		ArticlesFragment fragment = new ArticlesFragment();
-		Bundle args = new Bundle();
-		args.putLong(PARAM_ARTICLE_ID, articleId);
-		fragment.setArguments(args);
-		return fragment;
-	}
+        mIsPublishedSwitch = (Switch) view.findViewById(R.id.fragment_article_publish_switch);
 
-	public ArticlesFragment() {
-	}
+        mViewButton = (Button) view.findViewById(R.id.fragment_article_view_button);
+        mViewButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onViewModeButtonClicked();
+            }
+        });
 
-	@Override
-	public void onAttach(Activity activity) {
-		super.onAttach(activity);
-		if (activity instanceof IArticleFragmentInteractionListener) {
-			mListener = (IArticleFragmentInteractionListener) activity;
-			mListener.onRegister(this);
-		} else {
-			throw new ClassCastException(activity.toString()
-					+ " must implement OnFragmentInteractionListener");
-		}
-	}
+        mEditButton = (Button) view.findViewById(R.id.fragment_article_edit_button);
+        mEditButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onEditModeButtonClicked();
+            }
+        });
 
-	@Override
-	public void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-		if (getArguments() != null) {
-			mArticleId = getArguments().getLong(PARAM_ARTICLE_ID);
-		}
-	}
+        if (savedInstanceState != null) {
+            mCategories = savedInstanceState.getParcelableArrayList(STATE_CATEGORIES);
+            onCategoriesReceived(savedInstanceState.getInt(STATE_ARTICLE_CATEGORY));
+            mArticleId = savedInstanceState.getLong(STATE_ARTICLE_ID);
+            mTitleEdit.setText(savedInstanceState.getString(STATE_ARTICLE_TITLE));
+            mDescriptionEdit.setText(savedInstanceState.getString(STATE_ARTICLE_DESCRIPTION));
 
-	@Override
-	public View onCreateView(LayoutInflater inflater, ViewGroup container,
-							 Bundle savedInstanceState) {
-		View view = inflater.inflate(R.layout.fragment_articles, container, false);
-		mCategories = new ArrayList<>();
-		mTitleEdit = (EditText) view.findViewById(R.id.fragment_article_edit_title);
-		mDescriptionEdit = (EditText) view.findViewById(R.id.fragment_article_edit_description);
-		mImage = (ImageView) view.findViewById(R.id.fragment_articles_image);
-		mSpinner = (Spinner) view.findViewById(R.id.fragment_article_category_spinner);
-		mSpinner.setEnabled(false);
+        } else {
+            getCategories();
+        }
 
-		mIsPublishedSwitch = (Switch) view.findViewById(R.id.fragment_article_publish_switch);
+        mSaveButton = (Button) view.findViewById(R.id.fragment_article_save_button);
+        mSaveButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onSavePressed();
+            }
+        });
 
-		mViewButton = (Button) view.findViewById(R.id.fragment_article_view_button);
-		mViewButton.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				onViewModeButtonClicked();
-			}
-		});
+        mAddImageButton = (ImageButton) view.findViewById(R.id.fragment_article_image_change_button);
+        mAddImageButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onChangeImage();
+            }
+        });
+        mArticlesProjection = new String[]{COLUMN_ID
+                , ARTICLES_CATEGORY_ID
+                , ARTICLES_TITLE
+                , ARTICLES_DESCRIPTION
+                , ARTICLES_PHOTO_URL
+                , ARTICLES_PUBLISHED
+                , ARTICLES_CREATED
+                , ARTICLES_UPDATED
+                , ARTICLES_OWN
+        };
 
-		mEditButton = (Button) view.findViewById(R.id.fragment_article_edit_button);
-		mEditButton.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				onEditModeButtonClicked();
-			}
-		});
+        mCategoriesProjection = new String[]{COLUMN_ID
+                , CATEGORIES_TITLE
+        };
 
-		if (savedInstanceState != null) {
-			mCategories = savedInstanceState.getParcelableArrayList(STATE_CATEGORIES);
-			onCategoriesReceived(savedInstanceState.getInt(STATE_ARTICLE_CATEGORY));
-			mArticleId = savedInstanceState.getLong(STATE_ARTICLE_ID);
-			mTitleEdit.setText(savedInstanceState.getString(STATE_ARTICLE_TITLE));
-			mDescriptionEdit.setText(savedInstanceState.getString(STATE_ARTICLE_DESCRIPTION));
+        return view;
+    }
 
-		} else {
-			getCategories();
-		}
+    private void getCategoriesFromDb() {
+        getActivity().getLoaderManager().restartLoader(GET_CATEGORIES_LOADER, null, this);
+    }
 
-		mSaveButton = (Button) view.findViewById(R.id.fragment_article_save_button);
-		mSaveButton.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				onSavePressed();
-			}
-		});
+    private void getCategories() {
 
-		mAddImageButton = (ImageButton) view.findViewById(R.id.fragment_article_image_change_button);
-		mAddImageButton.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				onChangeImage();
-			}
-		});
-		mArticlesProjection = new String[]{OpenDBHelper.COLUMN_ID
-				, OpenDBHelper.ARTICLES_CATEGORY_ID
-				, OpenDBHelper.ARTICLES_TITLE
-				, OpenDBHelper.ARTICLES_DESCRIPTION
-				, OpenDBHelper.ARTICLES_PHOTO_URL
-				, OpenDBHelper.ARTICLES_PUBLISHED
-				, OpenDBHelper.ARTICLES_CREATED
-				, OpenDBHelper.ARTICLES_UPDATED
-				, OpenDBHelper.ARTICLES_OWN
-		};
+        getActivity().getLoaderManager().initLoader(GET_CATEGORIES_LOADER, null, this);
 
-		mCategoriesProjection = new String[]{OpenDBHelper.COLUMN_ID
-				, OpenDBHelper.CATEGORIES_TITLE
-		};
+        getCategoriesRequest(new IResponseListener() {
+            @Override
+            public void onResponse(long id) {
+                getCategoriesFromDb();
+            }
+        }, null);
+    }
 
-		return view;
-	}
+    private void addCategoriesFromCursor(Cursor cursor) {
 
-	private void getCategoriesFromDb() {
-		getActivity().getLoaderManager().restartLoader(GET_CATEGORIES_LOADER, null, this);
-	}
+        mCategories = new ArrayList<>();
+        while (cursor.moveToNext()) {
+            Category category = Category.fromCursor(cursor);
+            mCategories.add(category);
+        }
+        cursor.close();
+        onCategoriesReceived(0);
+    }
 
-	private void getCategories() {
+    private void onCategoriesReceived(int initCategoryIndex) {
+        ArrayAdapter<Category> adapter = new ArrayAdapter<>(getActivity()
+                , android.R.layout.simple_spinner_item
+                , mCategories.toArray(new Category[mCategories.size()]));
+        mSpinner.setAdapter(adapter);
+        mSpinner.setSelection(initCategoryIndex);
+    }
 
-		getActivity().getLoaderManager().initLoader(GET_CATEGORIES_LOADER, null, this);
+    private void onViewModeButtonClicked() {
+        disableUiFields();
+        mViewButton.setEnabled(false);
+        mEditButton.setEnabled(true);
+    }
 
-		getCategoriesRequest(new IResponseListener() {
-			@Override
-			public void onResponse(long id) {
-				getCategoriesFromDb();
-			}
-		}, null);
-	}
+    private void disableUiFields() {
+        mTitleEdit.setEnabled(false);
+        mDescriptionEdit.setEnabled(false);
+        mSaveButton.setVisibility(View.INVISIBLE);
+        mIsPublishedSwitch.setEnabled(false);
+        mSpinner.setEnabled(false);
+        mAddImageButton.setEnabled(false);
+    }
 
-	private void addCategoriesFromCursor(Cursor cursor) {
+    private void onEditModeButtonClicked() {
+        mTitleEdit.setEnabled(true);
+        mDescriptionEdit.setEnabled(true);
+        mSaveButton.setVisibility(View.VISIBLE);
+        mIsPublishedSwitch.setEnabled(true);
+        mEditButton.setEnabled(false);
+        mViewButton.setEnabled(true);
+        mAddImageButton.setEnabled(true);
+        mSpinner.setEnabled(true);
+    }
 
-		mCategories = new ArrayList<>();
-		while (cursor.moveToNext()) {
-			Category category = Category.fromCursor(cursor);
-			mCategories.add(category);
-		}
-		cursor.close();
-		onCategoriesReceived(0);
-	}
+    private void onChangeImage() {
+        Intent intent = new Intent();
+        intent.setType(getString(R.string.fragment_action_image_type));
+        intent.setAction(Intent.ACTION_GET_CONTENT);
+        startActivityForResult(Intent.createChooser(intent, getString(R.string.fragment_action_select_image_text))
+                , GET_IMAGE_REQUEST_CODE);
+    }
 
-	private void onCategoriesReceived(int initCategoryIndex) {
-		ArrayAdapter<Category> adapter = new ArrayAdapter<>(getActivity()
-				, android.R.layout.simple_spinner_item
-				, mCategories.toArray(new Category[mCategories.size()]));
-		mSpinner.setAdapter(adapter);
-		mSpinner.setSelection(initCategoryIndex);
-	}
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
 
-	private void onViewModeButtonClicked() {
-		disableUiFields();
-		mViewButton.setEnabled(false);
-		mEditButton.setEnabled(true);
-	}
+        if (requestCode == GET_IMAGE_REQUEST_CODE && resultCode == RESULT_OK
+                && data != null && data.getData() != null) {
 
-	private void disableUiFields() {
-		mTitleEdit.setEnabled(false);
-		mDescriptionEdit.setEnabled(false);
-		mSaveButton.setVisibility(View.INVISIBLE);
-		mIsPublishedSwitch.setEnabled(false);
-		mSpinner.setEnabled(false);
-		mAddImageButton.setEnabled(false);
-	}
+            Uri uri = data.getData();
 
-	private void onEditModeButtonClicked() {
-		mTitleEdit.setEnabled(true);
-		mDescriptionEdit.setEnabled(true);
-		mSaveButton.setVisibility(View.VISIBLE);
-		mIsPublishedSwitch.setEnabled(true);
-		mEditButton.setEnabled(false);
-		mViewButton.setEnabled(true);
-		mAddImageButton.setEnabled(true);
-		mSpinner.setEnabled(true);
-	}
+            try {
+                Bitmap bitmap = MediaStore.Images.Media.getBitmap(getActivity().getContentResolver(), uri);
+                mImage.setImageBitmap(bitmap);
+                mImagePath = uri.toString();
+                mImageChanged = true;
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
 
-	private void onChangeImage() {
-		Intent intent = new Intent();
-		intent.setType(getString(R.string.fragment_action_image_type));
-		intent.setAction(Intent.ACTION_GET_CONTENT);
-		startActivityForResult(Intent.createChooser(intent, getString(R.string.fragment_action_select_image_text))
-				, GET_IMAGE_REQUEST_CODE);
-	}
+    private void onSavePressed() {
+        String title = mTitleEdit.getText().toString();
+        String description = mDescriptionEdit.getText().toString();
+        long categoryId = mCategories.get(mSpinner.getSelectedItemPosition()).getId();
 
-	@Override
-	public void onActivityResult(int requestCode, int resultCode, Intent data) {
-		super.onActivityResult(requestCode, resultCode, data);
+        if (description.length() == 0 || title.length() == 0) {
+            return;
+        }
 
-		if (requestCode == GET_IMAGE_REQUEST_CODE && resultCode == RESULT_OK
-				&& data != null && data.getData() != null) {
+        Article article = new Article(mArticleId, title, description, "", true, categoryId
+                , 0, 0, true);
 
-			Uri uri = data.getData();
+        if (mArticleId < 0) {
+            addArticleRequest(article, mImageChanged ? mImagePath : null, new IResponseListener() {
+                @Override
+                public void onResponse(long id) {
+                    mArticleId = id;
+                }
+            }, null);
 
-			try {
-				Bitmap bitmap = MediaStore.Images.Media.getBitmap(getActivity().getContentResolver(), uri);
-				mImage.setImageBitmap(bitmap);
-				mImagePath = uri.toString();
-				mImageChanged = true;
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-	}
+        } else {
+            editArticleRequest(article, mImageChanged ? mImagePath : null, null, null);
+        }
+    }
 
-	private void onSavePressed() {
-		String title = mTitleEdit.getText().toString();
-		String description = mDescriptionEdit.getText().toString();
-		long categoryId = mCategories.get(mSpinner.getSelectedItemPosition()).getId();
+    @Override
+    public void onCreateNewArticle() {
+        mArticleId = -1;
+        clearFields();
+        onEditModeButtonClicked();
+    }
 
-		if (description.length() == 0 || title.length() == 0) {
-			return;
-		}
+    @Override
+    public void onOpenArticle(long id) {
+        Bundle args = new Bundle();
+        args.putLong(PARAM_ARTICLE_ID, id);
+        getLoaderManager().restartLoader(GET_CURRENT_ARTICLE_LOADER, args, this);
+    }
 
-		Article article = new Article(mArticleId, title, description, "", true, categoryId
-				, 0, 0, true);
+    @Override
+    public void onDeleteArticle(long id) {
+        if (mArticleId == id) {
+            clearFields();
+            disableUiFields();
+        }
+    }
 
-		if (mArticleId < 0) {
-			addArticleRequest(article, mImageChanged ? mImagePath : null, new IResponseListener() {
-				@Override
-				public void onResponse(long id) {
-					mArticleId = id;
-				}
-			}, null);
+    private void clearFields() {
+        mImagePath = null;
+        mImageChanged = false;
+        mTitleEdit.setText("");
+        mDescriptionEdit.setText("");
+        mSpinner.setSelection(0);
+        mIsPublishedSwitch.setChecked(false);
+        Picasso.with(getActivity()).load(R.drawable.default_photo).into(mImage);
+    }
 
-		} else {
-			editArticleRequest(article, mImageChanged ? mImagePath : null, null, null);
-		}
-	}
+    private void fillUiWithData(Cursor cursor) {
+        cursor.moveToFirst();
+        Article currentArticle = Article.fromCursor(cursor);
+        mArticleId = currentArticle.getId();
+        mTitleEdit.setText(currentArticle.getTitle());
+        mDescriptionEdit.setText(currentArticle.getDescription());
+        mIsPublishedSwitch.setChecked(currentArticle.isPublished());
 
-	@Override
-	public void onCreateNewArticle() {
-		mArticleId = -1;
-		clearFields();
-		onEditModeButtonClicked();
-	}
+        int spinnerSelection = getCategoryIndexById(currentArticle.getCategoryId());
+        if (spinnerSelection >= 0) {
+            mSpinner.setSelection(spinnerSelection);
+        }
 
-	@Override
-	public void onOpenArticle(long id) {
-		Bundle args = new Bundle();
-		args.putLong(PARAM_ARTICLE_ID, id);
-		getLoaderManager().restartLoader(GET_CURRENT_ARTICLE_LOADER, args, this);
-	}
+        if (!TextUtils.isEmpty(currentArticle.getPhotoUrl())) {
+            Picasso.with(getActivity()).load(currentArticle.getPhotoUrl()).into(mImage);
+        } else {
+            Picasso.with(getActivity()).load(R.drawable.default_photo).into(mImage);
+        }
 
-	@Override
-	public void onDeleteArticle(long id) {
-		if (mArticleId == id) {
-			// clear fields
-			clearFields();
-			disableUiFields();
-		}
-	}
+        mEditButton.setEnabled(currentArticle.getIsMine());
+        mViewButton.setEnabled(false);
+        mAddImageButton.setEnabled(false);
+        cursor.close();
+    }
 
-	private void clearFields() {
-		mImagePath = null;
-		mImageChanged = false;
-		mTitleEdit.setText("");
-		mDescriptionEdit.setText("");
-		mSpinner.setSelection(0);
-		mIsPublishedSwitch.setChecked(false);
-		Picasso.with(getActivity()).load(R.drawable.default_photo).into(mImage);
-	}
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
 
-	private void fillUiWithData(Cursor cursor) {
-		cursor.moveToFirst();
-		Article currentArticle = Article.fromCursor(cursor);
-		mArticleId = currentArticle.getId();
-		mTitleEdit.setText(currentArticle.getTitle());
-		mDescriptionEdit.setText(currentArticle.getDescription());
-		mIsPublishedSwitch.setChecked(currentArticle.isPublished());
+        switch (id) {
+            case GET_CURRENT_ARTICLE_LOADER:
+                long articleId = args.getLong(PARAM_ARTICLE_ID);
+                return new CursorLoader(
+                        getActivity(),
+                        getArticlesUri(articleId),
+                        mArticlesProjection, null, null, null
+                );
+            case GET_CATEGORIES_LOADER:
+                return new CursorLoader(
+                        getActivity(),
+                        CONTENT_URI_CATEGORIES,
+                        mCategoriesProjection, null, null, null
+                );
+            default:
+                return null;
+        }
+    }
 
-		int spinnerSelection = getCategoryIndexById(currentArticle.getCategoryId());
-		if (spinnerSelection >= 0) {
-			mSpinner.setSelection(spinnerSelection);
-		}
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        switch (loader.getId()) {
 
-		if (!TextUtils.isEmpty(currentArticle.getPhotoUrl())) {
-			Picasso.with(getActivity()).load(currentArticle.getPhotoUrl()).into(mImage);
-		} else {
-			Picasso.with(getActivity()).load(R.drawable.default_photo).into(mImage);
-		}
+            case GET_CURRENT_ARTICLE_LOADER:
+                if (data != null) {
+                    fillUiWithData(data);
+                }
+                break;
 
-		mEditButton.setEnabled(currentArticle.getIsMine());
-		mViewButton.setEnabled(false);
-		mAddImageButton.setEnabled(false);
-		cursor.close();
-	}
+            case GET_CATEGORIES_LOADER:
+                if (data != null) {
+                    addCategoriesFromCursor(data);
+                }
+                break;
+        }
+    }
 
-	@Override
-	public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
 
-		switch (id) {
-			case GET_CURRENT_ARTICLE_LOADER:
-				long articleId = args.getLong(PARAM_ARTICLE_ID);
-				return new CursorLoader(
-						getActivity(),
-						getArticlesUri(articleId),
-						mArticlesProjection, null, null, null
-				);
-			case GET_CATEGORIES_LOADER:
-				return new CursorLoader(
-						getActivity(),
-						CONTENT_URI_CATEGORIES,
-						mCategoriesProjection, null, null, null
-				);
-			default:
-				return null;
-		}
-	}
+    }
 
-	@Override
-	public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-		switch (loader.getId()) {
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putParcelableArrayList(STATE_CATEGORIES, mCategories);
+        outState.putString(STATE_ARTICLE_TITLE, mTitleEdit.getText().toString());
+        outState.putString(STATE_ARTICLE_DESCRIPTION, mDescriptionEdit.getText().toString());
+        outState.putInt(STATE_ARTICLE_CATEGORY, mSpinner.getSelectedItemPosition());
+    }
 
-			case GET_CURRENT_ARTICLE_LOADER:
-				if (data != null) {
-					fillUiWithData(data);
-				}
-				break;
+    private int getCategoryIndexById(long id) {
+        for (int i = 0; i < mCategories.size(); i++) {
+            if (mCategories.get(i).getId() == id) {
+                return i;
+            }
+        }
+        return -1;
+    }
 
-			case GET_CATEGORIES_LOADER:
-				if (data != null) {
-					addCategoriesFromCursor(data);
-				}
-				break;
-		}
-	}
-
-	@Override
-	public void onLoaderReset(Loader<Cursor> loader) {
-
-	}
-
-	@Override
-	public void onSaveInstanceState(Bundle outState) {
-		super.onSaveInstanceState(outState);
-		outState.putParcelableArrayList(STATE_CATEGORIES, mCategories);
-		outState.putString(STATE_ARTICLE_TITLE, mTitleEdit.getText().toString());
-		outState.putString(STATE_ARTICLE_DESCRIPTION, mDescriptionEdit.getText().toString());
-		outState.putInt(STATE_ARTICLE_CATEGORY, mSpinner.getSelectedItemPosition());
-	}
-
-	private int getCategoryIndexById(long id) {
-		for (int i = 0; i < mCategories.size(); i++) {
-			if (mCategories.get(i).getId() == id) {
-				return i;
-			}
-		}
-		return -1;
-	}
-
-	@Override
-	public void onDetach() {
-		super.onDetach();
-		mListener.onUnregister(this);
-		mListener = null;
-	}
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        mListener.onUnregister(this);
+        mListener = null;
+    }
 
 }

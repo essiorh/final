@@ -1,15 +1,17 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
-      xmlns:app="http://schemas.android.com/apk/res-auto"
-      xmlns:tools="http://schemas.android.com/tools"
-      tools:context=".MainActivity">
-    <item android:id="@+id/action_delete_listview"
-          android:title="@string/action_delete_listview_text"
-          android:orderInCategory="100"
-          app:showAsAction="never"/>
-    <item android:id="@+id/action_sort_order"
-          android:title="@string/action_delete_sortorder_text"
-          android:orderInCategory="100"
-          app:showAsAction="never"/>
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context=".MainActivity">
+    <item
+        android:id="@+id/action_delete_list_view"
+        android:orderInCategory="100"
+        android:title="@string/action_delete_list_view_text"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_sort_order"
+        android:orderInCategory="100"
+        android:title="@string/action_delete_sort_order_text"
+        app:showAsAction="never" />
 
 
 </menu>

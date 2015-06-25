@@ -10,126 +10,132 @@ import com.example.ilia.final_exercise.data.api.request.DeleteDataRequest;
 import com.example.ilia.final_exercise.data.api.response.DataResponse;
 import com.example.ilia.final_exercise.data.containers.Article;
 
-import static com.example.ilia.final_exercise.data.api.ApiService.*;
-import static com.example.ilia.final_exercise.data.api.ApiServiceHelper.*;
+import static com.example.ilia.final_exercise.data.api.ApiService.ERROR_KEY;
+import static com.example.ilia.final_exercise.data.api.ApiService.RESPONSE_OBJECT_KEY;
+import static com.example.ilia.final_exercise.data.api.ApiServiceHelper.addArticle;
+import static com.example.ilia.final_exercise.data.api.ApiServiceHelper.deleteArticle;
+import static com.example.ilia.final_exercise.data.api.ApiServiceHelper.editArticle;
+import static com.example.ilia.final_exercise.data.api.ApiServiceHelper.getArticles;
+import static com.example.ilia.final_exercise.data.api.ApiServiceHelper.getCategories;
 
 /**
  * Created by ilia on 16.06.15.
+ *
  * @author ilia
  */
 public abstract class BaseFragment extends Fragment {
 
-	protected interface IErrorListener {
-		void onError();
-	}
+    public void getArticlesRequest(final IResponseListener responseListener
+            , final IErrorListener errorListener) {
 
-	protected interface IResponseListener {
-		void onResponse(long id);
-	}
+        getArticles(new ResultReceiver(new Handler()) {
+            @Override
+            protected void onReceiveResult(int resultCode, Bundle resultData) {
+                if (resultData.containsKey(ERROR_KEY)) {
+                    if (errorListener != null) {
+                        errorListener.onError();
+                    }
+                } else {
+                    if (responseListener != null) {
+                        responseListener.onResponse(0L);
+                    }
+                }
+            }
+        });
+    }
 
-	public void getArticlesRequest(final IResponseListener responseListener
-			, final IErrorListener errorListener) {
+    public void addArticleRequest(Article article, String imagePath
+            , final IResponseListener responseListener
+            , final IErrorListener errorListener) {
 
-		getArticles(new ResultReceiver(new Handler()) {
-			@Override
-			protected void onReceiveResult(int resultCode, Bundle resultData) {
-				if (resultData.containsKey(ERROR_KEY)) {
-					if (errorListener != null) {
-						errorListener.onError();
-					}
-				} else {
-					if (responseListener != null) {
-						responseListener.onResponse(0L);
-					}
-				}
-			}
-		});
-	}
+        addArticle(new DataRequest(article, imagePath)
+                , new ResultReceiver(new Handler()) {
 
-	public void addArticleRequest(Article article, String imagePath
-			, final IResponseListener responseListener
-			, final IErrorListener errorListener) {
+            @Override
+            protected void onReceiveResult(int resultCode, Bundle resultData) {
+                if (resultData.containsKey(ERROR_KEY)) {
+                    if (errorListener != null) {
+                        errorListener.onError();
+                    }
+                } else {
 
-		addArticle(new DataRequest(article, imagePath)
-				, new ResultReceiver(new Handler()) {
+                    DataResponse response = resultData
+                            .getParcelable(RESPONSE_OBJECT_KEY);
+                    if (responseListener != null) {
+                        responseListener.onResponse(response.getId());
+                    }
+                }
+            }
+        });
+    }
 
-			@Override
-			protected void onReceiveResult(int resultCode, Bundle resultData) {
-				if (resultData.containsKey(ERROR_KEY)) {
-					if (errorListener != null) {
-						errorListener.onError();
-					}
-				} else {
+    public void editArticleRequest(Article article, String imagePath
+            , final IResponseListener responseListener
+            , final IErrorListener errorListener) {
 
-					DataResponse response = resultData
-							.getParcelable(RESPONSE_OBJECT_KEY);
-					if (responseListener != null) {
-						responseListener.onResponse(response.getId());
-					}
-				}
-			}
-		});
-	}
+        editArticle(new DataRequest(article, imagePath), new ResultReceiver(new Handler()) {
+            @Override
+            protected void onReceiveResult(int resultCode, Bundle resultData) {
+                if (resultData.containsKey(ERROR_KEY)) {
+                    if (errorListener != null) {
+                        errorListener.onError();
+                    }
+                } else {
+                    DataResponse response = resultData
+                            .getParcelable(RESPONSE_OBJECT_KEY);
+                    if (responseListener != null) {
+                        responseListener.onResponse(response.getId());
+                    }
+                }
+            }
+        });
+    }
 
-	public void editArticleRequest(Article article, String imagePath
-			, final IResponseListener responseListener
-			, final IErrorListener errorListener) {
+    public void deleteArticleRequest(long id
+            , final IResponseListener responseListener
+            , final IErrorListener errorListener) {
 
-		editArticle(new DataRequest(article, imagePath), new ResultReceiver(new Handler()) {
-			@Override
-			protected void onReceiveResult(int resultCode, Bundle resultData) {
-				if (resultData.containsKey(ERROR_KEY)) {
-					if (errorListener != null) {
-						errorListener.onError();
-					}
-				} else {
-					DataResponse response = resultData
-							.getParcelable(RESPONSE_OBJECT_KEY);
-					if (responseListener != null) {
-						responseListener.onResponse(response.getId());
-					}
-				}
-			}
-		});
-	}
+        deleteArticle(new DeleteDataRequest(id)
+                , new ResultReceiver(new Handler()) {
+            @Override
+            protected void onReceiveResult(int resultCode, Bundle resultData) {
+                if (resultData.containsKey(ERROR_KEY)) {
+                    if (errorListener != null) {
+                        errorListener.onError();
+                    }
+                } else {
+                    if (responseListener != null) {
+                        responseListener.onResponse(0L);
+                    }
+                }
+            }
+        });
+    }
 
-	public void deleteArticleRequest(long id
-			, final IResponseListener responseListener
-			, final IErrorListener errorListener) {
+    public void getCategoriesRequest(final IResponseListener responseListener
+            , final IErrorListener errorListener) {
 
-		deleteArticle(new DeleteDataRequest(id)
-				, new ResultReceiver(new Handler()) {
-			@Override
-			protected void onReceiveResult(int resultCode, Bundle resultData) {
-				if (resultData.containsKey(ERROR_KEY)) {
-					if (errorListener != null) {
-						errorListener.onError();
-					}
-				} else {
-					if (responseListener != null) {
-						responseListener.onResponse(0L);
-					}
-				}
-			}
-		});
-	}
+        getCategories(new ResultReceiver(new Handler()) {
+            @Override
+            protected void onReceiveResult(int resultCode, Bundle resultData) {
+                if (resultData.containsKey(ERROR_KEY)) {
+                    if (errorListener != null) {
+                        errorListener.onError();
+                    }
+                } else {
+                    if (responseListener != null) {
+                        responseListener.onResponse(0L);
+                    }
+                }
+            }
+        });
+    }
 
-	public void getCategoriesRequest(final IResponseListener responseListener
-			, final IErrorListener errorListener) {
+    protected interface IErrorListener {
+        void onError();
+    }
 
-		getCategories(new ResultReceiver(new Handler()) {
-			@Override
-			protected void onReceiveResult(int resultCode, Bundle resultData) {
-				if (resultData.containsKey(ERROR_KEY)) {
-					if (errorListener != null) {
-						errorListener.onError();
-					}
-				} else {
-					if (responseListener != null) {
-						responseListener.onResponse(0L);
-					}
-				}
-			}
-		});
-	}
+    protected interface IResponseListener {
+        void onResponse(long id);
+    }
 }

@@ -29,25 +29,33 @@ import android.widget.Switch;
 
 import com.example.ilia.final_exercise.R;
 import com.example.ilia.final_exercise.ui.adapters.EpxListViewCursorAdapter;
-import com.example.ilia.final_exercise.ui.sorts.TypeOfSortDialog;
 import com.example.ilia.final_exercise.ui.interfaces.IActivityAdapterInteraction;
 import com.example.ilia.final_exercise.ui.interfaces.IActivityTopicListInteractionListener;
 import com.example.ilia.final_exercise.ui.interfaces.ITopicListFragmentInteraction;
+import com.example.ilia.final_exercise.ui.sorts.TypeOfSortDialog;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static com.example.ilia.final_exercise.data.model.AppContentProvider.*;
-import static com.example.ilia.final_exercise.data.model.OpenDBHelper.*;
+import static com.example.ilia.final_exercise.data.model.AppContentProvider.CONTENT_URI_ARTICLES;
+import static com.example.ilia.final_exercise.data.model.AppContentProvider.CONTENT_URI_CATEGORIES_NOT_EMPTY;
+import static com.example.ilia.final_exercise.data.model.OpenDBHelper.ARTICLES_CATEGORY_ID;
+import static com.example.ilia.final_exercise.data.model.OpenDBHelper.ARTICLES_OWN;
+import static com.example.ilia.final_exercise.data.model.OpenDBHelper.ARTICLES_PUBLISHED;
+import static com.example.ilia.final_exercise.data.model.OpenDBHelper.ARTICLES_TITLE;
+import static com.example.ilia.final_exercise.data.model.OpenDBHelper.ARTICLES_UPDATED;
+import static com.example.ilia.final_exercise.data.model.OpenDBHelper.CATEGORIES_TITLE;
+import static com.example.ilia.final_exercise.data.model.OpenDBHelper.COLUMN_ID;
 
 /**
  * Created by ilia on 23.06.15.
+ *
  * @author ilia
  */
 public class TopicListFragment extends BaseFragment implements IActivityAdapterInteraction,
-		IActivityTopicListInteractionListener, LoaderManager.LoaderCallbacks<Cursor>,
-		AdapterView.OnItemSelectedListener, CompoundButton.OnCheckedChangeListener {
+        IActivityTopicListInteractionListener, LoaderManager.LoaderCallbacks<Cursor>,
+        AdapterView.OnItemSelectedListener, CompoundButton.OnCheckedChangeListener {
 
     private static final String TAG = "TopicListFragment";
     private static final int LIST_VIEW_MODE = 0;
@@ -64,19 +72,16 @@ public class TopicListFragment extends BaseFragment implements IActivityAdapterI
 
     private static final String ARGS_ARTICLES_SELECTION = "argsArticlesSelection";
     private static final String ARGS_ARTICLES_SELECTION_ARGUMENTS = "argsArticlesSelectionArguments";
-
-    private ListView mCustListView;
+    String[] mProjection;
+    String[] mCategoryProjection;
+    private ListView mListView;
     private ExpandableListView mExpListView;
     private ITopicListFragmentInteraction mListener;
     private SimpleCursorAdapter mListViewCursorAdapter;
     private EpxListViewCursorAdapter mListViewExAdapter;
-
     private boolean mFilterOnlyMy;
     private boolean mFilterUnpublished;
     private String mKeyword;
-
-    String[] mProjection;
-    String[] mCategoryProjection;
     private String mArticlesSortOrder;
     private String mCategoriesSortOrder;
     private String mChildArticlesSortOrder;
@@ -84,11 +89,11 @@ public class TopicListFragment extends BaseFragment implements IActivityAdapterI
 
     private TypeOfSortDialog mSortOrderDialog;
 
-    public static TopicListFragment newInstance() {
-        return new TopicListFragment();
+    public TopicListFragment() {
     }
 
-    public TopicListFragment() {
+    public static TopicListFragment newInstance() {
+        return new TopicListFragment();
     }
 
     @Override
@@ -101,16 +106,16 @@ public class TopicListFragment extends BaseFragment implements IActivityAdapterI
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_topic_list, container, false);
 
-        mCustListView = (ListView) view.findViewById(R.id.fragment_topiclist_listview);
-        mCustListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        mListView = (ListView) view.findViewById(R.id.fragment_topic_list_list_view);
+        mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 onListViewItemClicked(id);
             }
         });
-        registerForContextMenu(mCustListView);
+        registerForContextMenu(mListView);
 
-        mExpListView = (ExpandableListView) view.findViewById(R.id.fragment_topiclist_explistview);
+        mExpListView = (ExpandableListView) view.findViewById(R.id.fragment_topic_list_exp_list_view);
         mExpListView.setOnChildClickListener(new ExpandableListView.OnChildClickListener() {
             @Override
             public boolean onChildClick(ExpandableListView parent, View v, int groupPosition, int childPosition, long id) {
@@ -118,24 +123,24 @@ public class TopicListFragment extends BaseFragment implements IActivityAdapterI
                 return false;
             }
         });
-        view.findViewById(R.id.fragment_topiclist_button_refresh).setOnClickListener(new View.OnClickListener() {
+        view.findViewById(R.id.fragment_topic_list_button_refresh).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 onRefresh();
             }
         });
 
-        ((Switch) view.findViewById(R.id.fragment_topiclist_switch_onlymy)).setOnCheckedChangeListener(this);
-        ((Switch) view.findViewById(R.id.fragment_topiclist_switch_unpublished)).setOnCheckedChangeListener(this);
+        ((Switch) view.findViewById(R.id.fragment_topic_list_switch_only_my)).setOnCheckedChangeListener(this);
+        ((Switch) view.findViewById(R.id.fragment_topic_list_switch_unpublished)).setOnCheckedChangeListener(this);
 
-        Spinner spinner = (Spinner) view.findViewById(R.id.fragment_topiclist_spinner);
+        Spinner spinner = (Spinner) view.findViewById(R.id.fragment_topic_list_spinner);
         ArrayAdapter<String> adapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_spinner_item
-                , new String[]{getString(R.string.listview_caption), getString(R.string.listviewex_caption)});
+                , new String[]{getString(R.string.list_view_caption), getString(R.string.exp_list_view_caption)});
         spinner.setAdapter(adapter);
         spinner.setSelection(0);
         spinner.setOnItemSelectedListener(this);
 
-        EditText filterEdit = (EditText) view.findViewById(R.id.fragment_topiclist_edittext_filter);
+        EditText filterEdit = (EditText) view.findViewById(R.id.fragment_topic_list_edit_text_filter);
         filterEdit.addTextChangedListener(new TextWatcher() {
 
             public void afterTextChanged(Editable s) {
@@ -149,7 +154,7 @@ public class TopicListFragment extends BaseFragment implements IActivityAdapterI
             }
         });
 
-        view.findViewById(R.id.fragment_topiclist_add_button).setOnClickListener(new View.OnClickListener() {
+        view.findViewById(R.id.fragment_topic_list_add_button).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 onAddNewArticle();
@@ -188,11 +193,11 @@ public class TopicListFragment extends BaseFragment implements IActivityAdapterI
     private void fillData() {
         String[] from = new String[]{ARTICLES_TITLE};
 
-        int[] to = new int[]{R.id.listview_cell_title};
+        int[] to = new int[]{R.id.list_view_cell_title};
 
         mListViewCursorAdapter = new SimpleCursorAdapter(getActivity(), R.layout.topiclist_listview_cell
                 , null, from, to, 0);
-        mCustListView.setAdapter(mListViewCursorAdapter);
+        mListView.setAdapter(mListViewCursorAdapter);
 
         mListViewExAdapter = new EpxListViewCursorAdapter(null, getActivity(), this);
         mExpListView.setAdapter(mListViewExAdapter);
@@ -218,11 +223,11 @@ public class TopicListFragment extends BaseFragment implements IActivityAdapterI
     @Override
     public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
         switch (buttonView.getId()) {
-            case R.id.fragment_topiclist_switch_onlymy:
+            case R.id.fragment_topic_list_switch_only_my:
                 mFilterOnlyMy = isChecked;
                 break;
 
-            case R.id.fragment_topiclist_switch_unpublished:
+            case R.id.fragment_topic_list_switch_unpublished:
                 mFilterUnpublished = isChecked;
                 break;
         }
@@ -366,12 +371,12 @@ public class TopicListFragment extends BaseFragment implements IActivityAdapterI
     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
         switch (position) {
             case LIST_VIEW_MODE:
-                mCustListView.setVisibility(View.VISIBLE);
+                mListView.setVisibility(View.VISIBLE);
                 mExpListView.setVisibility(View.GONE);
                 break;
 
             case EXP_LIST_VIEW_MODE:
-                mCustListView.setVisibility(View.GONE);
+                mListView.setVisibility(View.GONE);
                 mExpListView.setVisibility(View.VISIBLE);
                 break;
         }
@@ -395,11 +400,11 @@ public class TopicListFragment extends BaseFragment implements IActivityAdapterI
     @Override
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
         super.onCreateContextMenu(menu, v, menuInfo);
-        if (v.getId() == R.id.fragment_topiclist_listview) {
+        if (v.getId() == R.id.fragment_topic_list_list_view) {
             MenuInflater inflater = getActivity().getMenuInflater();
             inflater.inflate(R.menu.menu_delete_listview, menu);
 
-        } else if (v.getId() == R.id.fragment_topiclist_explistview) {
+        } else if (v.getId() == R.id.fragment_topic_list_exp_list_view) {
 
             MenuInflater inflater = getActivity().getMenuInflater();
             inflater.inflate(R.menu.menu_delete_listviewex, menu);
@@ -409,7 +414,7 @@ public class TopicListFragment extends BaseFragment implements IActivityAdapterI
     @Override
     public boolean onContextItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.action_delete_listview:
+            case R.id.action_delete_list_view:
                 AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item
                         .getMenuInfo();
                 deleteArticleRequest(info.id, new IResponseListener() {
@@ -421,7 +426,7 @@ public class TopicListFragment extends BaseFragment implements IActivityAdapterI
                     }
                 }, null);
                 return true;
-            case R.id.action_delete_listviewex:
+            case R.id.action_delete_exp_list_view:
                 return true;
             case R.id.action_sort_order:
                 startSortOrderDialog();

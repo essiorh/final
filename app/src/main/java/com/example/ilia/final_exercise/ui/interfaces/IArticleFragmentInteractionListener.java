@@ -2,9 +2,11 @@ package com.example.ilia.final_exercise.ui.interfaces;
 
 /**
  * Created by ilia on 16.06.15.
+ *
  * @author ilia
  */
 public interface IArticleFragmentInteractionListener {
-	void onRegister(IActivityArticleInteractionListener fragment);
-	void onUnregister(IActivityArticleInteractionListener fragment);
+    void onRegister(IActivityArticleInteractionListener fragment);
+
+    void onUnregister(IActivityArticleInteractionListener fragment);
 }

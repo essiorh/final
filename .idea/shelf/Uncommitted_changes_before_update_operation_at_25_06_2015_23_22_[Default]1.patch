@@ -1,0 +1,91 @@
+Index: final.iml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- final.iml	(revision 83f9202fe6e832687c0801f4f9d9c8b798e3dfe1)
++++ final.iml	(revision )
+@@ -1,0 +1,0 @@
+Index: .idea/misc.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- .idea/misc.xml	(revision 83f9202fe6e832687c0801f4f9d9c8b798e3dfe1)
++++ .idea/misc.xml	(revision )
+@@ -1,7 +1,11 @@
+ <?xml version="1.0" encoding="UTF-8"?>
+ <project version="4">
+-  <component name="EntryPointsManager">
+-    <entry_points version="2.0" />
++  <component name="MavenImportPreferences">
++    <option name="generalSettings">
++      <MavenGeneralSettings>
++        <option name="mavenHome" value="Bundled (Maven 3)" />
++      </MavenGeneralSettings>
++    </option>
+   </component>
+   <component name="ProjectLevelVcsManager" settingsEditedManually="false">
+     <OptionsSetting value="true" id="Add" />
+@@ -18,5 +22,21 @@
+   </component>
+   <component name="ProjectType">
+     <option name="id" value="Android" />
++  </component>
++  <component name="masterDetails">
++    <states>
++      <state key="ProjectJDKs.UI">
++        <settings>
++          <last-edited>1.8</last-edited>
++          <splitter-proportions>
++            <option name="proportions">
++              <list>
++                <option value="0.2" />
++              </list>
++            </option>
++          </splitter-proportions>
++        </settings>
++      </state>
++    </states>
+   </component>
+ </project>
+\ No newline at end of file
+Index: .idea/compiler.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- .idea/compiler.xml	(revision 83f9202fe6e832687c0801f4f9d9c8b798e3dfe1)
++++ .idea/compiler.xml	(revision )
+@@ -1,0 +1,0 @@
+Index: .idea/vcs.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- .idea/vcs.xml	(revision 83f9202fe6e832687c0801f4f9d9c8b798e3dfe1)
++++ .idea/vcs.xml	(revision )
+@@ -1,0 +1,0 @@
+Index: .idea/gradle.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- .idea/gradle.xml	(revision 83f9202fe6e832687c0801f4f9d9c8b798e3dfe1)
++++ .idea/gradle.xml	(revision )
+@@ -1,0 +1,0 @@
+Index: .idea/modules.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- .idea/modules.xml	(revision 83f9202fe6e832687c0801f4f9d9c8b798e3dfe1)
++++ .idea/modules.xml	(revision )
+@@ -1,0 +1,0 @@
+Index: app/app.iml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/app.iml	(revision 83f9202fe6e832687c0801f4f9d9c8b798e3dfe1)
++++ app/app.iml	(revision )

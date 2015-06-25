@@ -5,43 +5,43 @@ import android.os.Parcelable;
 
 /**
  * Created by ilia on 23.06.15.
+ *
  * @author ilia
  */
 public class PhotoContainer implements Parcelable {
 
-	private String url;
+    public static final Creator<PhotoContainer> CREATOR = new Creator<PhotoContainer>() {
 
-	public PhotoContainer(String url) {
-		this.url = url;
-	}
+        public PhotoContainer createFromParcel(Parcel in) {
+            return new PhotoContainer(in);
+        }
 
-	public String getUrl() {
-		return url;
-	}
+        public PhotoContainer[] newArray(int size) {
+            return new PhotoContainer[size];
+        }
+    };
+    private String url;
+
+    public PhotoContainer(String url) {
+        this.url = url;
+    }
 
 
-	public PhotoContainer(Parcel in) {
-		url = in.readString();
-	}
+    public PhotoContainer(Parcel in) {
+        url = in.readString();
+    }
 
-	@Override
-	public int describeContents() {
-		return 0;
-	}
+    public String getUrl() {
+        return url;
+    }
 
-	@Override
-	public void writeToParcel(Parcel dest, int flags) {
-		dest.writeString(url);
-	}
+    @Override
+    public int describeContents() {
+        return 0;
+    }
 
-	public static final Creator<PhotoContainer> CREATOR = new Creator<PhotoContainer>() {
-
-		public PhotoContainer createFromParcel(Parcel in) {
-			return new PhotoContainer(in);
-		}
-
-		public PhotoContainer[] newArray(int size) {
-			return new PhotoContainer[size];
-		}
-	};
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(url);
+    }
 }

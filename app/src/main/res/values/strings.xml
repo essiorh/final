@@ -1,34 +1,59 @@
 <resources>
-    <string name="app_name">Android_test_exam</string>
+    <string name="app_name">Final exercise</string>
 
     <string name="hello_world">Hello world!</string>
+
     <string name="action_settings">Settings</string>
 
     <string name="hello_blank_fragment">Hello blank fragment</string>
-    <string name="fragment_topiclist_filter_text">Filters:</string>
-    <string name="fragment_topiclist_filter_onlymy">Only my</string>
-    <string name="fragment_topiclist_filter_unpublished">unpublished</string>
-    <string name="fragment_topiclist_sorttype_button_text">Sort type</string>
+
+    <string name="fragment_topic_list_filter_text">Filters:</string>
+
+    <string name="fragment_topic_list_filter_only_my">Only my</string>
+
+    <string name="fragment_topic_list_filter_unpublished">Unpublished</string>
+
+    <string name="fragment_topic_list_sort_type_button_text">Sort type</string>
 
     <string name="fragment_articles_view_mode_text">View</string>
+
     <string name="fragment_articles_edit_mode_text">Edit</string>
+
     <string name="fragment_articles_image_change_button_text">Change</string>
 
     <string name="fragment_article_publish_switch_text">Published?</string>
+
     <string name="fragment_article_save_button_text">Save</string>
 
-    <string name="listview_caption">listview</string>
-    <string name="listviewex_caption">expand listview</string>
+    <string name="list_view_caption">Custom list view</string>
 
-    <string name="action_delete_listview_text">delete</string>
-    <string name="action_delete_sortorder_text">Select sort order</string>
+    <string name="exp_list_view_caption">Expandable list view</string>
 
-    <string name="action_delete_listviewex_text">delete</string>
+    <string name="action_delete_list_view_text">delete</string>
+
+    <string name="action_delete_sort_order_text">Select sort order</string>
+
+    <string name="action_delete_exp_list_view_text">delete</string>
+
     <string name="fragment_action_select_image_text">Select image</string>
+
     <string name="fragment_action_image_type">image/*</string>
+
     <string name="sort_dialog_title">Type of sorting</string>
-    <string name="sort_dialog_message">Sort by title , ID or updated time?</string>
-    <string name="sort_dialog_title_button_text">title</string>
-    <string name="sort_dialog_id_button_text">ID</string>
-    <string name="sort_dialog_updated_button_text">updated time</string>
+
+    <string name="sort_dialog_message">Sorting of articles on-time updates, title or id</string>
+
+    <string name="sort_dialog_title_button_text">By title</string>
+
+    <string name="sort_dialog_id_button_text">By id</string>
+
+    <string name="sort_dialog_updated_button_text">On-time update</string>
+
+    <string name="fragment_article_image">Fragment article image</string>
+
+    <string name="add_new_article_description">Add new article</string>
+
+    <string name="refresh_image_button_description">Refresh</string>
+
+    <string name="search_image_button_description">Search</string>
 </resources>

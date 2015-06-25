@@ -1,90 +1,84 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-             xmlns:tools="http://schemas.android.com/tools"
-             android:layout_width="match_parent"
-             android:layout_height="match_parent"
-             tools:context="com.grishberg.android_test_exam.ui.fragments.ArticlesFragment"
-            android:background="@color/primary"
-              android:orientation="vertical"
-    >
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/primary"
+    android:orientation="vertical"
+    tools:context="com.example.ilia.final_exercise.ui.fragments.ArticlesFragment">
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@color/primary_dark"
-        android:orientation="horizontal"
-        >
+        android:orientation="horizontal">
 
         <Button
             android:id="@+id/fragment_article_view_button"
-            android:text="@string/fragment_articles_view_mode_text"
+            style="?android:attr/buttonBarButtonStyle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:enabled="false"
-            />
+            android:text="@string/fragment_articles_view_mode_text" />
 
         <Button
             android:id="@+id/fragment_article_edit_button"
-            android:text="@string/fragment_articles_edit_mode_text"
+            style="?android:attr/buttonBarButtonStyle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:enabled="false"
-            />
+            android:text="@string/fragment_articles_edit_mode_text" />
     </LinearLayout>
 
     <RelativeLayout
-        android:orientation="horizontal"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
 
-        <!-- ARTICLE CONTROLS -->
         <LinearLayout
-            android:orientation="vertical"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_alignParentStart="true"
             android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
             android:layout_toLeftOf="@+id/relativeLayout"
-            android:layout_toStartOf="@+id/relativeLayout">
+            android:layout_toStartOf="@+id/relativeLayout"
+            android:orientation="vertical">
 
             <EditText
                 android:id="@+id/fragment_article_edit_title"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@color/icons"
-                android:textColor="@color/primary_text"
-                android:layout_marginTop="2dp"
                 android:layout_marginBottom="2dp"
+                android:layout_marginTop="2dp"
+                android:background="@color/icons"
                 android:enabled="false"
-                />
+                android:inputType="textShortMessage"
+                android:textColor="@color/primary_text" />
 
             <EditText
                 android:id="@+id/fragment_article_edit_description"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:lines="6"
                 android:background="@color/icons"
-                android:textColor="@color/primary_text"
                 android:enabled="false"
-                />
+                android:inputType="textMultiLine"
+                android:lines="6"
+                android:textColor="@color/primary_text" />
 
             <Spinner
                 android:id="@+id/fragment_article_category_spinner"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                >
-            </Spinner>
+                android:layout_height="wrap_content" />
 
-            <!-- published on off -->
             <RelativeLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                >
+                android:layout_height="wrap_content">
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/fragment_article_publish_switch_text"
+                    android:layout_alignParentLeft="true"
                     android:layout_alignParentStart="true"
-                    android:layout_alignParentLeft="true"/>
+                    android:text="@string/fragment_article_publish_switch_text" />
 
                 <Switch
                     android:id="@+id/fragment_article_publish_switch"
@@ -92,50 +86,49 @@
                     android:layout_height="wrap_content"
                     android:layout_alignParentEnd="true"
                     android:layout_alignParentRight="true"
-                    android:enabled="false"
-                    />
+                    android:enabled="false" />
             </RelativeLayout>
 
             <Button
                 android:id="@+id/fragment_article_save_button"
-                android:text="@string/fragment_article_save_button_text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:gravity="center_horizontal"
-                android:visibility="invisible"
-                />
+                android:text="@string/fragment_article_save_button_text"
+                android:visibility="invisible" />
         </LinearLayout>
 
-        <!-- IMAGE  and button-->
         <RelativeLayout
+            android:id="@+id/relativeLayout"
             android:layout_width="@dimen/fragment_article_image_size"
             android:layout_height="@dimen/fragment_article_image_size"
             android:layout_alignParentEnd="true"
-            android:layout_alignParentRight="true"
-            android:id="@+id/relativeLayout">
+            android:layout_alignParentRight="true">
+
             <ImageView
                 android:id="@+id/fragment_articles_image"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                />
+                android:contentDescription="@string/fragment_article_image" />
 
             <ImageButton
                 android:id="@+id/fragment_article_image_change_button"
-                android:text="@string/fragment_articles_image_change_button_text"
-                android:enabled="false"
-                android:layout_width="@dimen/fragment_article_editimage_button_size"
-                android:layout_height="@dimen/fragment_article_editimage_button_size"
+                android:layout_width="@dimen/fragment_article_edit_image_button_size"
+                android:layout_height="@dimen/fragment_article_edit_image_button_size"
                 android:layout_alignParentBottom="true"
-                android:layout_alignParentRight="true"
                 android:layout_alignParentEnd="true"
+                android:layout_alignParentRight="true"
+                android:contentDescription="@string/fragment_articles_image_change_button_text"
+                android:enabled="false"
+                android:scaleType="centerInside"
                 android:src="@drawable/edit"
-                android:scaleType="centerInside"/>
+                android:text="@string/fragment_articles_image_change_button_text" />
         </RelativeLayout>
     </RelativeLayout>
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:text="@string/hello_blank_fragment"/>
+        android:text="@string/hello_blank_fragment" />
 
 </LinearLayout>

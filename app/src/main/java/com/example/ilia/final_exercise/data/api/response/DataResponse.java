@@ -5,45 +5,45 @@ import android.os.Parcelable;
 
 /**
  * Created by ilia on 23.06.15.
+ *
  * @author ilia
  */
 public class DataResponse implements Parcelable {
-	private long id;
+    public static final Creator<DataResponse> CREATOR
+            = new Creator<DataResponse>() {
+        public DataResponse createFromParcel(Parcel in) {
+            return new DataResponse(in);
+        }
 
-	public DataResponse() {
-		id = 0;
-	}
+        public DataResponse[] newArray(int size) {
+            return new DataResponse[size];
+        }
+    };
+    private long id;
 
-	public DataResponse(long id) {
-		this.id = id;
-	}
+    public DataResponse() {
+        id = 0;
+    }
 
-	public long getId() {
-		return id;
-	}
+    public DataResponse(long id) {
+        this.id = id;
+    }
 
-	@Override
-	public int describeContents() {
-		return 0;
-	}
+    public DataResponse(Parcel in) {
+        id = in.readLong();
+    }
 
-	@Override
-	public void writeToParcel(Parcel dest, int flags) {
-		dest.writeLong(id);
-	}
+    public long getId() {
+        return id;
+    }
 
-	public static final Creator<DataResponse> CREATOR
-			= new Creator<DataResponse>() {
-		public DataResponse createFromParcel(Parcel in) {
-			return new DataResponse(in);
-		}
+    @Override
+    public int describeContents() {
+        return 0;
+    }
 
-		public DataResponse[] newArray(int size) {
-			return new DataResponse[size];
-		}
-	};
-
-	public DataResponse(Parcel in) {
-		id = in.readLong();
-	}
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeLong(id);
+    }
 }
