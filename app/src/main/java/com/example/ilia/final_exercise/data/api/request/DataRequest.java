@@ -6,34 +6,25 @@ import android.os.Parcelable;
 import com.example.ilia.final_exercise.data.containers.Article;
 
 /**
- * Created by grigoriy on 16.06.15.
+ * Created by ilia on 23.06.15.
+ * @author ilia
  */
 public class DataRequest implements Parcelable {
-	private Article	article;
-	private String	uri;
+	private Article article;
+	private String uri;
 
-	public DataRequest(){
-		this(null, null);
+	public DataRequest(Article article, String uri) {
+		this.article = article;
+		this.uri = uri;
 	}
 
-	public DataRequest(long id){
-		this(null, null);
+	public Article getArticle() {
+		return article;
 	}
 
-	public DataRequest(Article article){
-		this(article,null);
+	public String getAdditionalData() {
+		return uri;
 	}
-
-
-	public DataRequest(Article article, String uri){
-		this.article	= article;
-		this.uri		= uri;
-	}
-
-	public Article	getArticle(){ return article;}
-	public String 	getAdditionalData(){ return uri;}
-
-	//--------------- implement Parcelable
 
 	@Override
 	public int describeContents() {
@@ -57,8 +48,8 @@ public class DataRequest implements Parcelable {
 		}
 	};
 
-	public DataRequest( Parcel in){
-		article	= (Article)in.readParcelable(Article.class.getClassLoader());
-		uri		= in.readString();
+	public DataRequest(Parcel in) {
+		article = in.readParcelable(Article.class.getClassLoader());
+		uri = in.readString();
 	}
 }

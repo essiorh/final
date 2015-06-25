@@ -5,18 +5,19 @@ import android.database.Cursor;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-import com.example.ilia.final_exercise.data.model.DbHelper;
+import com.example.ilia.final_exercise.data.model.OpenDBHelper;
 
 /**
- * Created by grigoriy on 16.06.15.
+ * Created by ilia on 16.06.15.
+ * @author ilia
  */
-public class Category implements Parcelable{
+public class Category implements Parcelable {
 	private long id;
 	private String title;
 
-	public  Category(long id, String title){
-		this.id		= id;
-		this.title	= title;
+	public Category(long id, String title) {
+		this.id = id;
+		this.title = title;
 	}
 
 	public long getId() {
@@ -32,9 +33,9 @@ public class Category implements Parcelable{
 		return title;
 	}
 
-	public static Category fromCursor(Cursor c){
-		int idColId = c.getColumnIndex(DbHelper.COLUMN_ID);
-		int titleColId = c.getColumnIndex(DbHelper.CATEGORIES_TITLE);
+	public static Category fromCursor(Cursor c) {
+		int idColId = c.getColumnIndex(OpenDBHelper.COLUMN_ID);
+		int titleColId = c.getColumnIndex(OpenDBHelper.CATEGORIES_TITLE);
 
 		return new Category(
 				c.getLong(idColId),
@@ -47,15 +48,15 @@ public class Category implements Parcelable{
 	public ContentValues buildContentValues() {
 		ContentValues cv = new ContentValues();
 		if (id >= 0) {
-			cv.put(DbHelper.COLUMN_ID, id);
+			cv.put(OpenDBHelper.COLUMN_ID, id);
 		}
-		cv.put(DbHelper.CATEGORIES_TITLE, title);
+		cv.put(OpenDBHelper.CATEGORIES_TITLE, title);
 		return cv;
 	}
 
-	public Category(Parcel in){
-		id		= in.readLong();
-		title	= in.readString();
+	public Category(Parcel in) {
+		id = in.readLong();
+		title = in.readString();
 	}
 
 	@Override

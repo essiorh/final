@@ -4,24 +4,20 @@ import android.app.Application;
 import android.content.Context;
 
 /**
- * Created by grigoriy on 16.06.15.
+ * Created by ilia on 17.06.15.
+ * @author ilia
  */
 public class AppController extends Application {
-	private static AppController instance;
-	private static Context appContext;
 
-	@Override
-	public void onCreate() {
-		super.onCreate();
-		appContext = getApplicationContext();
-		instance = this;
-	}
+    private static Context appContext;
 
-	public AppController getInstance() {
-		return instance;
-	}
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        appContext = getApplicationContext();
+    }
 
-	public static Context getAppContext(){
-		return appContext;
-	}
+    public static Context getAppContext(){
+        return appContext;
+    }
 }

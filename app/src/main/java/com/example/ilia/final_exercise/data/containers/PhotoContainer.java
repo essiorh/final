@@ -4,24 +4,24 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 /**
- * Created by grigoriy on 18.06.15.
+ * Created by ilia on 23.06.15.
+ * @author ilia
  */
 public class PhotoContainer implements Parcelable {
 
 	private String url;
 
-	public PhotoContainer(String url){
-		this.url	= url;
+	public PhotoContainer(String url) {
+		this.url = url;
 	}
+
 	public String getUrl() {
 		return url;
 	}
 
 
-	//-------------- Parcelable -----------------
-
-	public PhotoContainer(Parcel in){
-		url	= in.readString();
+	public PhotoContainer(Parcel in) {
+		url = in.readString();
 	}
 
 	@Override
@@ -35,7 +35,7 @@ public class PhotoContainer implements Parcelable {
 	}
 
 	public static final Creator<PhotoContainer> CREATOR = new Creator<PhotoContainer>() {
-		// распаковываем объект из Parcel
+
 		public PhotoContainer createFromParcel(Parcel in) {
 			return new PhotoContainer(in);
 		}
@@ -44,5 +44,4 @@ public class PhotoContainer implements Parcelable {
 			return new PhotoContainer[size];
 		}
 	};
-
 }

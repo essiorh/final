@@ -5,7 +5,8 @@ import android.os.Parcelable;
 
 
 /**
- * Created by grigoriy on 22.06.15.
+ * Created by ilia on 23.06.15.
+ * @author ilia
  */
 public class DeleteDataRequest implements Parcelable {
 	private long id;
@@ -19,10 +20,9 @@ public class DeleteDataRequest implements Parcelable {
 	}
 
 
-	//---------------- Parcelable ------------------
 
-	public DeleteDataRequest(Parcel in){
-		id			= in.readLong();
+	public DeleteDataRequest(Parcel in) {
+		id = in.readLong();
 	}
 
 	@Override
@@ -36,7 +36,7 @@ public class DeleteDataRequest implements Parcelable {
 	}
 
 	public static final Creator<DeleteDataRequest> CREATOR = new Creator<DeleteDataRequest>() {
-		// распаковываем объект из Parcel
+
 		public DeleteDataRequest createFromParcel(Parcel in) {
 			return new DeleteDataRequest(in);
 		}

@@ -4,23 +4,23 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 /**
- * Created by grigoriy on 16.06.15.
+ * Created by ilia on 23.06.15.
+ * @author ilia
  */
 public class DataResponse implements Parcelable {
 	private long id;
-	public DataResponse(){
+
+	public DataResponse() {
 		id = 0;
 	}
 
-	public DataResponse(long id){
-		this.id	= id;
+	public DataResponse(long id) {
+		this.id = id;
 	}
 
-	public long getId(){
+	public long getId() {
 		return id;
 	}
-
-	//--------------- implement Parcelable
 
 	@Override
 	public int describeContents() {
@@ -43,7 +43,7 @@ public class DataResponse implements Parcelable {
 		}
 	};
 
-	public DataResponse( Parcel in){
-		id	= in.readLong();
+	public DataResponse(Parcel in) {
+		id = in.readLong();
 	}
 }

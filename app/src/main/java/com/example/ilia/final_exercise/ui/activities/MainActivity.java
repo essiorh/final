@@ -1,54 +1,79 @@
 package com.example.ilia.final_exercise.ui.activities;
 
-import android.net.Uri;
+import android.app.Activity;
 import android.os.Bundle;
+import android.util.Log;
 
 import com.example.ilia.final_exercise.R;
-import com.example.ilia.final_exercise.data.containers.ArticleItem;
-import com.example.ilia.final_exercise.ui.fragments.ArticleFragment;
-import com.example.ilia.final_exercise.ui.fragments.ListFragment;
-import com.example.ilia.final_exercise.ui.interfaces.IClickListener;
-import com.example.ilia.final_exercise.ui.interfaces.IStateItemChange;
+import com.example.ilia.final_exercise.ui.fragments.ArticlesFragment;
+import com.example.ilia.final_exercise.ui.fragments.TopicListFragment;
+import com.example.ilia.final_exercise.ui.interfaces.IActivityArticleInteractionListener;
+import com.example.ilia.final_exercise.ui.interfaces.IActivityTopicListInteractionListener;
+import com.example.ilia.final_exercise.ui.interfaces.IArticleFragmentInteractionListener;
+import com.example.ilia.final_exercise.ui.interfaces.ITopicListFragmentInteraction;
 
+/**
+ * Created by ilia on 16.06.15.
+ * @author ilia
+ */
+public class MainActivity extends Activity implements IArticleFragmentInteractionListener,
+														ITopicListFragmentInteraction {
 
-public class MainActivity extends BaseActivity {
-    public static final String LIST_FRAGMENT = "list_fragment";
-    public static final String ARTICLE_FRAGMENT = "article_fragment";
+	public static final String TAG = "MY LOG";
 
+	private IActivityArticleInteractionListener mArticleFragment;
 
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		setContentView(R.layout.activity_main);
+		if (savedInstanceState != null) {
+			Log.d(TAG,"savedInstanceState is not null");
+		} else {
+			getFragmentManager().beginTransaction()
+					.add(R.id.topiclist_panel, TopicListFragment.newInstance())
+					.add(R.id.article_panel, ArticlesFragment.newInstance(-1))
+					.commit();
+		}
+	}
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+	@Override
+	public void onItemClicked(long id) {
+		if (mArticleFragment != null) {
+			mArticleFragment.onOpenArticle(id);
+		}
+	}
 
-        if (savedInstanceState == null) {
-            getSupportFragmentManager().beginTransaction()
-                    .add(R.id.frg_list, new ListFragment(), LIST_FRAGMENT)
-                    .add(R.id.frg_article, new ArticleFragment(), ARTICLE_FRAGMENT).commit();
-        }
-    }
+	@Override
+	public void onCreateNewArticle() {
+		if (mArticleFragment != null) {
+			mArticleFragment.onCreateNewArticle();
+		}
+	}
 
-    @Override
-    public void getArticleToAnotherFragment(Uri uri) {
-        IClickListener iClickListener=(IClickListener)getSupportFragmentManager().findFragmentByTag(ARTICLE_FRAGMENT);
-        iClickListener.getArticleToAnotherFragment(uri);
-    }
+	@Override
+	public void onDeleteArticle(long id) {
+		if (mArticleFragment != null) {
+			mArticleFragment.onDeleteArticle(id);
+		}
+	}
 
-    @Override
-    public void deleteArticleItem(ArticleItem articleItem) {
-    }
+	@Override
+	public void onRegister(IActivityArticleInteractionListener fragment) {
+		mArticleFragment = fragment;
+	}
 
-    @Override
-    public void updateArticleItem(ArticleItem articleItem) {
+	@Override
+	public void onUnregister(IActivityArticleInteractionListener fragment) {
+		mArticleFragment = null;
+	}
 
-    }
+	@Override
+	public void onRegister(IActivityTopicListInteractionListener fragment) {
+	}
 
-    @Override
-    public void addArticleItem() {
-        IStateItemChange iClickListener=(IStateItemChange)getSupportFragmentManager().findFragmentByTag(LIST_FRAGMENT);
-        iClickListener.addArticleItem();
-    }
-
+	@Override
+	public void onUnregister(IActivityTopicListInteractionListener fragment) {
+	}
 
 }

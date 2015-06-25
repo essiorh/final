@@ -1,48 +1,59 @@
 package com.example.ilia.final_exercise.data.api;
 
-import org.apache.http.HttpEntity;
-import org.apache.http.ParseException;
-import org.apache.http.protocol.HTTP;
-import org.apache.http.util.EntityUtils;
+import android.annotation.TargetApi;
+import android.os.Build;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.Reader;
+import java.io.UnsupportedEncodingException;
 
 /**
- * Created by grigoriy on 16.06.15.
+ * Created by ilia on 23.06.15.
+ * @author ilia
  */
 public class ApiResponse {
-	public HttpEntity body;
-	public int status;
+	private static final String CHARSET = "UTF-8";
+	private static final int BUFFER_SIZE = 1024;
+	private InputStream mInputSream;
+	private int status;
 
-	public ApiResponse() {}
+	public ApiResponse() {
+		this(0, null);
+	}
 
-	public String getAsText(){
-		String text = "";
-		if (body != null) {
-			try {
-				text = EntityUtils.toString(body, HTTP.UTF_8);
-				body.consumeContent();
-			} catch (ParseException e) {
-				e.printStackTrace();
-			} catch (IOException e) {
-				e.printStackTrace();
+	public ApiResponse(int status, InputStream inputStream) {
+		this.status = status;
+		this.mInputSream = inputStream;
+	}
+
+	@TargetApi(Build.VERSION_CODES.KITKAT)
+	public String getAsText() {
+		final char[] buffer = new char[BUFFER_SIZE];
+		final StringBuilder out = new StringBuilder();
+		try (Reader in = new InputStreamReader(mInputSream, CHARSET)) {
+			for (; ; ) {
+				int rsz = in.read(buffer, 0, buffer.length);
+				if (rsz < 0)
+					break;
+				out.append(buffer, 0, rsz);
 			}
+		} catch (IOException ex) {
+			ex.printStackTrace();
 		}
-		return text;
+		return out.toString();
+
 	}
 
 	public InputStreamReader getInputStreamReader() {
-		if(body == null){
+		if (mInputSream == null) {
 			return null;
 		}
-		InputStreamReader inputStreamReader = null;
-		try {
-			inputStreamReader = new InputStreamReader(body.getContent());
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		return inputStreamReader;
+		return new InputStreamReader(mInputSream);
+	}
+
+	public int getStatus() {
+		return status;
 	}
 }
-
